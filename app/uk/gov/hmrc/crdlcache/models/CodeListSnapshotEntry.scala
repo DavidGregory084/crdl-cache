@@ -24,6 +24,7 @@ import uk.gov.hmrc.crdlcache.config.{
   ListConfig,
   PhaseAndDomainListConfig
 }
+import uk.gov.hmrc.crdlcache.models.CodeListCode.code
 import uk.gov.hmrc.crdlcache.models.CodeListOrigin.{CSRD2, SEED}
 import uk.gov.hmrc.crdlcache.models.dps.codelist.DpsCodeListEntry
 import uk.gov.hmrc.crdlcache.models.errors.ImportError.{
@@ -34,8 +35,8 @@ import uk.gov.hmrc.crdlcache.models.errors.ImportError.{
 }
 import uk.gov.hmrc.crdlcache.utils.ParserUtils.parseDateToInstant
 
-import java.time.format.DateTimeFormatter
 import java.time.Instant
+import java.time.format.DateTimeFormatter
 
 case class CodeListSnapshotEntry(
   key: String,
@@ -44,8 +45,8 @@ case class CodeListSnapshotEntry(
   updatedAt: Option[Instant],
   operation: Option[Operation],
   properties: JsObject,
-  phase: Option[String],
-  domain: Option[String]
+  phase: Option[Phase],
+  domain: Option[Domain]
 )
 
 object CodeListSnapshotEntry {
@@ -121,9 +122,9 @@ object CodeListSnapshotEntry {
         builder += (item.propertyName -> propertyValue)
       }
 
-    val phase: Option[String] = None
+    val phase: Option[Phase] = None
 
-    val domain: Option[String] = None
+    val domain: Option[Domain] = None
 
     CodeListSnapshotEntry(
       key,

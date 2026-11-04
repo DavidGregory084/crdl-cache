@@ -19,10 +19,10 @@ package uk.gov.hmrc.crdlcache.controllers
 import play.api.libs.json.{JsValue, Json}
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import uk.gov.hmrc.crdlcache.controllers.auth.Permissions.ReadCodeLists
-import uk.gov.hmrc.crdlcache.models.CodeListType.{CORRESPONDENCE, PD, STANDARD}
+import uk.gov.hmrc.crdlcache.models.CodeListCode.isCorrespondenceList
 import uk.gov.hmrc.crdlcache.models.formats.HttpFormats
-import uk.gov.hmrc.crdlcache.models.CodeListCode
 import uk.gov.hmrc.crdlcache.models.paging.PagedResult
+import uk.gov.hmrc.crdlcache.models.{CodeListCode, Domain, Phase}
 import uk.gov.hmrc.crdlcache.repositories.{
   CorrespondenceListsRepository,
   LastUpdatedRepository,
@@ -47,7 +47,7 @@ class CodeListsController @Inject() (
   extends BackendController(cc)
   with HttpFormats {
 
-  private def validatePhaseDomain(phase: Option[String], domain: Option[String]): Option[String] =
+  private def validatePhaseDomain(phase: Option[Phase], domain: Option[Domain]): Option[String] =
     (phase, domain) match {
       case (Some(_), None) | (None, Some(_)) =>
         Some("Both phase and domain must be provided together, or neither should be provided")
@@ -55,12 +55,12 @@ class CodeListsController @Inject() (
     }
 
   def fetchCodeListEntries(
-    codeListCode: CodeListCode,
+    code: String,
     filterKeys: Option[Set[String]],
     filterProperties: Option[Map[String, JsValue]],
     activeAt: Option[Instant],
-    phase: Option[String],
-    domain: Option[String]
+    phase: Option[Phase],
+    domain: Option[Domain]
   ): Action[AnyContent] =
     auth.authorizedAction(ReadCodeLists).async { _ =>
       validatePhaseDomain(phase, domain) match {
@@ -69,18 +69,9 @@ class CodeListsController @Inject() (
             BadRequest(Json.obj("error" -> errorMessage))
           )
         case None =>
-          val codeListEntries = codeListCode.listType match {
-            case STANDARD =>
-              codeListsRepository
-                .fetchEntries(
-                  codeListCode,
-                  filterKeys,
-                  filterProperties,
-                  activeAt.getOrElse(clock.instant()),
-                  phase,
-                  domain
-                )
-            case CORRESPONDENCE =>
+          val codeListCode = CodeListCode(code)
+          val codeListEntries =
+            if (codeListCode.isCorrespondenceList)
               correspondenceListsRepository
                 .fetchEntries(
                   codeListCode,
@@ -90,7 +81,7 @@ class CodeListsController @Inject() (
                   phase,
                   domain
                 )
-            case PD =>
+            else
               codeListsRepository
                 .fetchEntries(
                   codeListCode,
@@ -100,7 +91,6 @@ class CodeListsController @Inject() (
                   phase,
                   domain
                 )
-          }
 
           codeListEntries.map { entries =>
             Ok(Json.toJson(entries))
@@ -109,21 +99,20 @@ class CodeListsController @Inject() (
     }
 
   def fetchCodeListEntriesPaginated(
-    code: CodeListCode,
+    code: String,
     pageNum: Int,
     pageSize: Int,
     activeAt: Option[Instant],
     key: Option[String],
     value: Option[String]
   ): Action[AnyContent] = auth.authorizedAction(ReadCodeLists).async { _ =>
+    val codeListCode     = CodeListCode(code)
     val resolvedActiveAt = activeAt.getOrElse(clock.instant())
-    val repo = code.listType match {
-      case CORRESPONDENCE => correspondenceListsRepository
-      case STANDARD | PD  => codeListsRepository
-    }
+    val repo =
+      if (codeListCode.isCorrespondenceList) correspondenceListsRepository else codeListsRepository
     val entriesFuture =
-      repo.fetchEntriesPaged(code, resolvedActiveAt, pageNum, pageSize, key, value)
-    val countFuture = repo.countEntries(code, resolvedActiveAt, key, value)
+      repo.fetchEntriesPaged(codeListCode, resolvedActiveAt, pageNum, pageSize, key, value)
+    val countFuture = repo.countEntries(codeListCode, resolvedActiveAt, key, value)
     for {
       entries <- entriesFuture
       count   <- countFuture
@@ -154,11 +143,12 @@ class CodeListsController @Inject() (
   def fetchCodeListVersionsPaged(
     pageNum: Int,
     pageSize: Int,
-    codeListCode: Option[String],
-    phase: Option[String],
-    domain: Option[String]
+    code: Option[String],
+    phase: Option[Phase],
+    domain: Option[Domain]
   ): Action[AnyContent] =
     auth.authorizedAction(ReadCodeLists).async { _ =>
+      val codeListCode = code.map(CodeListCode.apply)
       val listUpdatedFuture =
         lastUpdatedRepository.fetchAllLastUpdatedPaged(
           pageNum,
@@ -189,10 +179,10 @@ class CodeListsController @Inject() (
 
   def getSnapshot(
     code: String,
-    phase: Option[String] = None,
-    domain: Option[String] = None
+    phase: Option[Phase] = None,
+    domain: Option[Domain] = None
   ): Action[AnyContent] = auth.authorizedAction(ReadCodeLists).async { _ =>
-    lastUpdatedRepository.fetchLastUpdated(CodeListCode.fromString(code), phase, domain).map {
+    lastUpdatedRepository.fetchLastUpdated(CodeListCode(code), phase, domain).map {
       case Some(snapshot) => Ok(Json.toJson(snapshot))
       case None           => NotFound
     }

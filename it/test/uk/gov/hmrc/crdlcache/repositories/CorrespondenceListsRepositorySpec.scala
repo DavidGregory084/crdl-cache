@@ -24,7 +24,7 @@ import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.must.Matchers
 import org.scalatest.{Assertion, OptionValues}
 import play.api.libs.json.{JsString, Json}
-import uk.gov.hmrc.crdlcache.models.CodeListCode.E200
+import uk.gov.hmrc.crdlcache.models.CodeListCode.{E200, code}
 import uk.gov.hmrc.crdlcache.models.CodeListEntry
 import uk.gov.hmrc.crdlcache.models.CorrespondenceListInstruction.{
   InvalidateEntry,
@@ -355,7 +355,8 @@ class CorrespondenceListsRepositorySpec
         activeAt = Instant.parse("2025-06-05T00:00:00Z"),
         None,
         None
-      ).map(_ must contain only activeEntries(1))
+      )
+      .map(_ must contain only activeEntries(1))
   }
 
   "CorrespondenceListsRepository.executeInstructions" should "invalidate existing entries" in withCorrespondenceListEntries(

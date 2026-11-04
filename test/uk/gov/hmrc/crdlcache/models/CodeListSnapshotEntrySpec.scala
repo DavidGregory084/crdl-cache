@@ -20,11 +20,11 @@ import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.must.Matchers
 import play.api.libs.json.Json
 import uk.gov.hmrc.crdlcache.config.{CodeListConfig, CorrespondenceListConfig}
-import uk.gov.hmrc.crdlcache.models.CodeListCode.{BC08, E200}
+import uk.gov.hmrc.crdlcache.models.CodeListCode.{BC08, E200, code}
 import uk.gov.hmrc.crdlcache.models.CodeListOrigin.SEED
 import uk.gov.hmrc.crdlcache.models.Operation.{Create, Update}
 import uk.gov.hmrc.crdlcache.models.dps.codelist
-import uk.gov.hmrc.crdlcache.models.dps.codelist.{DpsCodeListEntry, DataItem, LanguageDescription}
+import uk.gov.hmrc.crdlcache.models.dps.codelist.{DataItem, DpsCodeListEntry, LanguageDescription}
 import uk.gov.hmrc.crdlcache.models.errors.ImportError.{
   LanguageDescriptionMissing,
   RequiredDataItemMissing,

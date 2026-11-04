@@ -21,7 +21,7 @@ import java.time.Instant
 case class LastUpdated(
   codeListCode: CodeListCode,
   snapshotVersion: Long,
-  phase: Option[String],
-  domain: Option[String],
+  phase: Option[Phase],
+  domain: Option[Domain],
   lastUpdated: Instant
 )

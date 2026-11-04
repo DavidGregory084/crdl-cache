@@ -299,8 +299,8 @@ class ImportPhaseAndDomainCodeListsJobSpec
         equalTo(clientSession),
         any(),
         anyLong(),
-        equalTo(Some("P6")),
-        equalTo(Some("NCTS")),
+        equalTo(Some(Phase.NCTS6)),
+        equalTo(Some(Domain.NCTS)),
         equalTo(fixedInstant)
       )
     )
@@ -311,16 +311,16 @@ class ImportPhaseAndDomainCodeListsJobSpec
       codeListsRepository.fetchEntryKeys(
         equalTo(clientSession),
         equalTo(CL231),
-        equalTo(Some("P6")),
-        equalTo(Some("NCTS"))
+        equalTo(Some(Phase.NCTS6)),
+        equalTo(Some(Domain.NCTS))
       )
     )
       .thenReturn(Future.successful(Set.empty[String]))
       .thenReturn(
         Future.successful(
           Set(
-            CodeListKey("T2", Some("P6"), Some("NCTS")),
-            CodeListKey("T2F", Some("P6"), Some("NCTS"))
+            CodeListKey("T2", Some(Phase.NCTS6), Some(Domain.NCTS)),
+            CodeListKey("T2F", Some(Phase.NCTS6), Some(Domain.NCTS))
           )
         )
       )
@@ -331,8 +331,8 @@ class ImportPhaseAndDomainCodeListsJobSpec
     // Codelist configuration
     when(appConfig.phaseAndDomainListConfigs).thenReturn(
       List(
-        PhaseAndDomainListConfig(CL231, CSRD2, "DeclarationTypeCode", "P6", "NCTS"),
-        PhaseAndDomainListConfig(CL234, CSRD2, "PreviousDocumentTypeCode", "P6", "NCTS")
+        PhaseAndDomainListConfig(CL231, CSRD2, "DeclarationTypeCode", Phase.NCTS6, Domain.NCTS),
+        PhaseAndDomainListConfig(CL234, CSRD2, "PreviousDocumentTypeCode", Phase.NCTS6, Domain.NCTS)
       )
     )
 
@@ -341,8 +341,8 @@ class ImportPhaseAndDomainCodeListsJobSpec
       dpsConnector.fetchCodeListSnapshots(
         equalTo(CL231),
         equalTo(lastUpdatedInstant),
-        equalTo(Some("P6")),
-        equalTo(Some("NCTS"))
+        equalTo(Some(Phase.NCTS6)),
+        equalTo(Some(Domain.NCTS))
       )(using any())
     )
       .thenReturn(Source(List(snapshotsPage1, snapshotsPage2)))
@@ -351,8 +351,8 @@ class ImportPhaseAndDomainCodeListsJobSpec
       dpsConnector.fetchCodeListSnapshots(
         equalTo(CL234),
         equalTo(lastUpdatedInstant),
-        equalTo(Some("P6")),
-        equalTo(Some("NCTS"))
+        equalTo(Some(Phase.NCTS6)),
+        equalTo(Some(Domain.NCTS))
       )(using any())
     )
       .thenReturn(Source.empty)
@@ -380,8 +380,8 @@ class ImportPhaseAndDomainCodeListsJobSpec
                 "phase"  -> "P6",
                 "domain" -> "NCTS"
               ),
-              Some("P6"),
-              Some("NCTS")
+              Some(Phase.NCTS6),
+              Some(Domain.NCTS)
             )
           ),
           UpsertEntry(
@@ -397,8 +397,8 @@ class ImportPhaseAndDomainCodeListsJobSpec
                 "phase"  -> "P6",
                 "domain" -> "NCTS"
               ),
-              Some("P6"),
-              Some("NCTS")
+              Some(Phase.NCTS6),
+              Some(Domain.NCTS)
             )
           )
         )
@@ -412,8 +412,8 @@ class ImportPhaseAndDomainCodeListsJobSpec
       equalTo(clientSession),
       equalTo(CL231),
       anyLong(),
-      equalTo(Some("P6")),
-      equalTo(Some("NCTS")),
+      equalTo(Some(Phase.NCTS6)),
+      equalTo(Some(Domain.NCTS)),
       equalTo(fixedInstant)
     )
 
@@ -422,8 +422,8 @@ class ImportPhaseAndDomainCodeListsJobSpec
       equalTo(clientSession),
       equalTo(CL234),
       anyLong(),
-      equalTo(Some("P6")),
-      equalTo(Some("NCTS")),
+      equalTo(Some(Phase.NCTS6)),
+      equalTo(Some(Domain.NCTS)),
       equalTo(fixedInstant)
     )
 
@@ -437,14 +437,14 @@ class ImportPhaseAndDomainCodeListsJobSpec
 
     when(appConfig.defaultLastUpdated).thenReturn(LocalDate.of(2025, 3, 12))
 
-    when(lastUpdatedRepository.fetchLastUpdated(CL231, Some("P6"), Some("NCTS")))
+    when(lastUpdatedRepository.fetchLastUpdated(CL231, Some(Phase.NCTS6), Some(Domain.NCTS)))
       .thenReturn(
-        Future.successful(Some(LastUpdated(CL231, 1, Some("P6"), Some("NCTS"), storedInstant)))
+        Future.successful(Some(LastUpdated(CL231, 1, Some(Phase.NCTS6), Some(Domain.NCTS), storedInstant)))
       )
 
-    when(lastUpdatedRepository.fetchLastUpdated(CL234, Some("P6"), Some("NCTS")))
+    when(lastUpdatedRepository.fetchLastUpdated(CL234, Some(Phase.NCTS6), Some(Domain.NCTS)))
       .thenReturn(
-        Future.successful(Some(LastUpdated(CL234, 1, Some("P6"), Some("NCTS"), storedInstant)))
+        Future.successful(Some(LastUpdated(CL234, 1, Some(Phase.NCTS6), Some(Domain.NCTS), storedInstant)))
       )
 
     when(
@@ -452,8 +452,8 @@ class ImportPhaseAndDomainCodeListsJobSpec
         equalTo(clientSession),
         any(),
         anyLong(),
-        equalTo(Some("P6")),
-        equalTo(Some("NCTS")),
+        equalTo(Some(Phase.NCTS6)),
+        equalTo(Some(Domain.NCTS)),
         equalTo(fixedInstant)
       )
     )
@@ -464,16 +464,16 @@ class ImportPhaseAndDomainCodeListsJobSpec
       codeListsRepository.fetchEntryKeys(
         equalTo(clientSession),
         equalTo(CL231),
-        equalTo(Some("P6")),
-        equalTo(Some("NCTS"))
+        equalTo(Some(Phase.NCTS6)),
+        equalTo(Some(Domain.NCTS))
       )
     )
       .thenReturn(Future.successful(Set.empty[String]))
       .thenReturn(
         Future.successful(
           Set(
-            CodeListKey("T2", Some("P6"), Some("NCTS")),
-            CodeListKey("T2F", Some("P6"), Some("NCTS"))
+            CodeListKey("T2", Some(Phase.NCTS6), Some(Domain.NCTS)),
+            CodeListKey("T2F", Some(Phase.NCTS6), Some(Domain.NCTS))
           )
         )
       )
@@ -481,8 +481,8 @@ class ImportPhaseAndDomainCodeListsJobSpec
     // Codelist configuration
     when(appConfig.phaseAndDomainListConfigs).thenReturn(
       List(
-        PhaseAndDomainListConfig(CL231, CSRD2, "DeclarationType", "P6", "NCTS"),
-        PhaseAndDomainListConfig(CL234, CSRD2, "DocumentTypeExcise", "P6", "NCTS")
+        PhaseAndDomainListConfig(CL231, CSRD2, "DeclarationType", Phase.NCTS6, Domain.NCTS),
+        PhaseAndDomainListConfig(CL234, CSRD2, "DocumentTypeExcise", Phase.NCTS6, Domain.NCTS)
       )
     )
 
@@ -491,8 +491,8 @@ class ImportPhaseAndDomainCodeListsJobSpec
       dpsConnector.fetchCodeListSnapshots(
         equalTo(CL231),
         equalTo(storedInstant),
-        equalTo(Some("P6")),
-        equalTo(Some("NCTS"))
+        equalTo(Some(Phase.NCTS6)),
+        equalTo(Some(Domain.NCTS))
       )(using any())
     )
       .thenReturn(Source(List(snapshotsPage1, snapshotsPage2)))
@@ -501,8 +501,8 @@ class ImportPhaseAndDomainCodeListsJobSpec
       dpsConnector.fetchCodeListSnapshots(
         equalTo(CL234),
         equalTo(storedInstant),
-        equalTo(Some("P6")),
-        equalTo(Some("NCTS"))
+        equalTo(Some(Phase.NCTS6)),
+        equalTo(Some(Domain.NCTS))
       )(using any())
     )
       .thenReturn(Source.empty)
@@ -529,8 +529,8 @@ class ImportPhaseAndDomainCodeListsJobSpec
         equalTo(clientSession),
         any(),
         anyLong(),
-        equalTo(Some("P6")),
-        equalTo(Some("NCTS")),
+        equalTo(Some(Phase.NCTS6)),
+        equalTo(Some(Domain.NCTS)),
         equalTo(fixedInstant)
       )
     )
@@ -541,16 +541,16 @@ class ImportPhaseAndDomainCodeListsJobSpec
       codeListsRepository.fetchEntryKeys(
         equalTo(clientSession),
         equalTo(CL231),
-        equalTo(Some("P6")),
-        equalTo(Some("NCTS"))
+        equalTo(Some(Phase.NCTS6)),
+        equalTo(Some(Domain.NCTS))
       )
     )
       .thenReturn(Future.successful(Set.empty[String]))
       .thenReturn(
         Future.successful(
           Set(
-            CodeListKey("T2", Some("P6"), Some("NCTS")),
-            CodeListKey("T2F", Some("P6"), Some("NCTS"))
+            CodeListKey("T2", Some(Phase.NCTS6), Some(Domain.NCTS)),
+            CodeListKey("T2F", Some(Phase.NCTS6), Some(Domain.NCTS))
           )
         )
       )
@@ -561,8 +561,8 @@ class ImportPhaseAndDomainCodeListsJobSpec
     // Codelist configuration
     when(appConfig.phaseAndDomainListConfigs).thenReturn(
       List(
-        PhaseAndDomainListConfig(CL231, CSRD2, "DeclarationTypeCode", "P6", "NCTS"),
-        PhaseAndDomainListConfig(CL234, CSRD2, "PreviousDocumentTypeCode", "P6", "NCTS")
+        PhaseAndDomainListConfig(CL231, CSRD2, "DeclarationTypeCode", Phase.NCTS6, Domain.NCTS),
+        PhaseAndDomainListConfig(CL234, CSRD2, "PreviousDocumentTypeCode", Phase.NCTS6, Domain.NCTS)
       )
     )
 
@@ -571,8 +571,8 @@ class ImportPhaseAndDomainCodeListsJobSpec
       dpsConnector.fetchCodeListSnapshots(
         equalTo(CL231),
         equalTo(lastUpdatedInstant),
-        equalTo(Some("P6")),
-        equalTo(Some("NCTS"))
+        equalTo(Some(Phase.NCTS6)),
+        equalTo(Some(Domain.NCTS))
       )(using any())
     )
       .thenReturn(Source(List(snapshotsPage1, snapshotsPage2)))
@@ -581,8 +581,8 @@ class ImportPhaseAndDomainCodeListsJobSpec
       dpsConnector.fetchCodeListSnapshots(
         equalTo(CL234),
         equalTo(lastUpdatedInstant),
-        equalTo(Some("P6")),
-        equalTo(Some("NCTS"))
+        equalTo(Some(Phase.NCTS6)),
+        equalTo(Some(Domain.NCTS))
       )(using any())
     )
       .thenReturn(Source.empty)
@@ -611,8 +611,8 @@ class ImportPhaseAndDomainCodeListsJobSpec
                 "phase"  -> "P6",
                 "domain" -> "NCTS"
               ),
-              Some("P6"),
-              Some("NCTS")
+              Some(Phase.NCTS6),
+              Some(Domain.NCTS)
             )
           ),
           UpsertEntry(
@@ -628,8 +628,8 @@ class ImportPhaseAndDomainCodeListsJobSpec
                 "phase"  -> "P6",
                 "domain" -> "NCTS"
               ),
-              Some("P6"),
-              Some("NCTS")
+              Some(Phase.NCTS6),
+              Some(Domain.NCTS)
             )
           ),
           UpsertEntry(
@@ -645,8 +645,8 @@ class ImportPhaseAndDomainCodeListsJobSpec
                 "phase"  -> "P6",
                 "domain" -> "NCTS"
               ),
-              Some("P6"),
-              Some("NCTS")
+              Some(Phase.NCTS6),
+              Some(Domain.NCTS)
             )
           ),
           UpsertEntry(
@@ -662,8 +662,8 @@ class ImportPhaseAndDomainCodeListsJobSpec
                 "phase"  -> "P6",
                 "domain" -> "NCTS"
               ),
-              Some("P6"),
-              Some("NCTS")
+              Some(Phase.NCTS6),
+              Some(Domain.NCTS)
             )
           )
         )
@@ -677,8 +677,8 @@ class ImportPhaseAndDomainCodeListsJobSpec
       equalTo(clientSession),
       equalTo(CL231),
       equalTo(1L),
-      equalTo(Some("P6")),
-      equalTo(Some("NCTS")),
+      equalTo(Some(Phase.NCTS6)),
+      equalTo(Some(Domain.NCTS)),
       equalTo(fixedInstant)
     )
 
@@ -687,8 +687,8 @@ class ImportPhaseAndDomainCodeListsJobSpec
       equalTo(clientSession),
       equalTo(CL234),
       anyLong(),
-      equalTo(Some("P6")),
-      equalTo(Some("NCTS")),
+      equalTo(Some(Phase.NCTS6)),
+      equalTo(Some(Domain.NCTS)),
       equalTo(fixedInstant)
     )
 
@@ -703,14 +703,14 @@ class ImportPhaseAndDomainCodeListsJobSpec
       codeListsRepository.fetchEntryKeys(
         equalTo(clientSession),
         equalTo(CL231),
-        equalTo(Some("P6")),
-        equalTo(Some("NCTS"))
+        equalTo(Some(Phase.NCTS6)),
+        equalTo(Some(Domain.NCTS))
       )
     )
-      // .thenReturn(Future.successful(Set(CodeListKey("T", Some("P6"), Some("NCTS")))))
+      // .thenReturn(Future.successful(Set(CodeListKey("T", Some(Phase.NCTS6), Some(Domain.NCTS)))))
       .thenReturn(Future.successful(Set.empty[CodeListKey]))
 
-    val codeListConfig = PhaseAndDomainListConfig(CL231, CSRD2, "DeclarationTypeCode", "P6", "NCTS")
+    val codeListConfig = PhaseAndDomainListConfig(CL231, CSRD2, "DeclarationTypeCode", Phase.NCTS6, Domain.NCTS)
 
     val instructions = codeListsJob
       .processSnapshot(
@@ -736,8 +736,8 @@ class ImportPhaseAndDomainCodeListsJobSpec
             "phase"  -> "P6",
             "domain" -> "NCTS"
           ),
-          Some("P6"),
-          Some("NCTS")
+          Some(Phase.NCTS6),
+          Some(Domain.NCTS)
         )
       ),
       UpsertEntry(
@@ -753,8 +753,8 @@ class ImportPhaseAndDomainCodeListsJobSpec
             "phase"  -> "P6",
             "domain" -> "NCTS"
           ),
-          Some("P6"),
-          Some("NCTS")
+          Some(Phase.NCTS6),
+          Some(Domain.NCTS)
         )
       )
     )
@@ -765,21 +765,21 @@ class ImportPhaseAndDomainCodeListsJobSpec
       codeListsRepository.fetchEntryKeys(
         equalTo(clientSession),
         equalTo(CL231),
-        equalTo(Some("P6")),
-        equalTo(Some("NCTS"))
+        equalTo(Some(Phase.NCTS6)),
+        equalTo(Some(Domain.NCTS))
       )
     )
       .thenReturn(
         Future.successful(
           Set(
-            CodeListKey("T", Some("P6"), Some("NCTS")),
-            CodeListKey("T2", Some("P6"), Some("NCTS")),
-            CodeListKey("T2F", Some("P6"), Some("NCTS"))
+            CodeListKey("T", Some(Phase.NCTS6), Some(Domain.NCTS)),
+            CodeListKey("T2", Some(Phase.NCTS6), Some(Domain.NCTS)),
+            CodeListKey("T2F", Some(Phase.NCTS6), Some(Domain.NCTS))
           )
         )
       )
 
-    val codeListConfig = PhaseAndDomainListConfig(CL231, CSRD2, "DeclarationTypeCode", "P6", "NCTS")
+    val codeListConfig = PhaseAndDomainListConfig(CL231, CSRD2, "DeclarationTypeCode", Phase.NCTS6, Domain.NCTS)
 
     val instructions = codeListsJob
       .processSnapshot(
@@ -796,8 +796,8 @@ class ImportPhaseAndDomainCodeListsJobSpec
       RecordMissingEntry(
         CL231,
         "T",
-        Some("P6"),
-        Some("NCTS"),
+        Some(Phase.NCTS6),
+        Some(Domain.NCTS),
         Instant.parse("2025-06-03T00:00:00Z")
       ),
       UpsertEntry(
@@ -813,8 +813,8 @@ class ImportPhaseAndDomainCodeListsJobSpec
             "phase"  -> "P6",
             "domain" -> "NCTS"
           ),
-          Some("P6"),
-          Some("NCTS")
+          Some(Phase.NCTS6),
+          Some(Domain.NCTS)
         )
       ),
       UpsertEntry(
@@ -830,8 +830,8 @@ class ImportPhaseAndDomainCodeListsJobSpec
             "phase"  -> "P6",
             "domain" -> "NCTS"
           ),
-          Some("P6"),
-          Some("NCTS")
+          Some(Phase.NCTS6),
+          Some(Domain.NCTS)
         )
       ),
       UpsertEntry(
@@ -847,8 +847,8 @@ class ImportPhaseAndDomainCodeListsJobSpec
             "phase"  -> "P6",
             "domain" -> "NCTS"
           ),
-          Some("P6"),
-          Some("NCTS")
+          Some(Phase.NCTS6),
+          Some(Domain.NCTS)
         )
       ),
       UpsertEntry(
@@ -864,8 +864,8 @@ class ImportPhaseAndDomainCodeListsJobSpec
             "phase"  -> "P6",
             "domain" -> "NCTS"
           ),
-          Some("P6"),
-          Some("NCTS")
+          Some(Phase.NCTS6),
+          Some(Domain.NCTS)
         )
       )
     )
@@ -876,13 +876,13 @@ class ImportPhaseAndDomainCodeListsJobSpec
       codeListsRepository.fetchEntryKeys(
         equalTo(clientSession),
         equalTo(CL234),
-        equalTo(Some("P6")),
-        equalTo(Some("NCTS"))
+        equalTo(Some(Phase.NCTS6)),
+        equalTo(Some(Domain.NCTS))
       )
     )
-      .thenReturn(Future.successful(Set(CodeListKey("E470", Some("P6"), Some("NCTS")))))
+      .thenReturn(Future.successful(Set(CodeListKey("E470", Some(Phase.NCTS6), Some(Domain.NCTS)))))
 
-    val codeListConfig = PhaseAndDomainListConfig(CL234, CSRD2, "DocumentTypeExcise", "P6", "NCTS")
+    val codeListConfig = PhaseAndDomainListConfig(CL234, CSRD2, "DocumentTypeExcise", Phase.NCTS6, Domain.NCTS)
 
     val instructions = codeListsJob
       .processSnapshot(
@@ -914,8 +914,8 @@ class ImportPhaseAndDomainCodeListsJobSpec
               Json.obj(
                 "actionIdentification" -> "1096"
               ),
-              Some("P6"),
-              Some("NCTS")
+              Some(Phase.NCTS6),
+              Some(Domain.NCTS)
             ),
             CodeListSnapshotEntry(
               "E470",
@@ -926,13 +926,13 @@ class ImportPhaseAndDomainCodeListsJobSpec
               Json.obj(
                 "actionIdentification" -> "1099"
               ),
-              Some("P6"),
-              Some("NCTS")
+              Some(Phase.NCTS6),
+              Some(Domain.NCTS)
             )
           )
         ),
-        Some("P6"),
-        Some("NCTS")
+        Some(Phase.NCTS6),
+        Some(Domain.NCTS)
       )
       .futureValue
 
@@ -948,8 +948,8 @@ class ImportPhaseAndDomainCodeListsJobSpec
           Json.obj(
             "actionIdentification" -> "1099"
           ),
-          Some("P6"),
-          Some("NCTS")
+          Some(Phase.NCTS6),
+          Some(Domain.NCTS)
         )
       )
     )

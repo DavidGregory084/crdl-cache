@@ -51,8 +51,8 @@ case class CustomsOffice(
   customsOfficeSpecificNotesCodes: List[String],
   customsOfficeLsd: CustomsOfficeDetail,
   customsOfficeTimetable: List[CustomsOfficeTimetable],
-  phase: Option[String],
-  domain: Option[String]
+  phase: Option[Phase],
+  domain: Option[Domain]
 )
 
 object CustomsOffice {
@@ -62,8 +62,8 @@ object CustomsOffice {
 
   def fromDpsCustomOfficeList(
     dpsCustomOfficeList: DpsCustomsOffice,
-    phase: Option[String] = None,
-    domain: Option[String] = None
+    phase: Option[Phase] = None,
+    domain: Option[Domain] = None
   ): CustomsOffice = {
     CustomsOffice(
       dpsCustomOfficeList.referencenumber,

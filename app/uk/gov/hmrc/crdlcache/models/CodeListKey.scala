@@ -16,4 +16,4 @@
 
 package uk.gov.hmrc.crdlcache.models
 
-final case class CodeListKey(key: String, phase: Option[String], domain: Option[String])
+final case class CodeListKey(key: String, phase: Option[Phase], domain: Option[Domain])

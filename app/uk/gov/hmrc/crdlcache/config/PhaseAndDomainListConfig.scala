@@ -16,12 +16,12 @@
 
 package uk.gov.hmrc.crdlcache.config
 
-import uk.gov.hmrc.crdlcache.models.{CodeListCode, CodeListOrigin}
+import uk.gov.hmrc.crdlcache.models.{CodeListCode, CodeListOrigin, Domain, Phase}
 
 case class PhaseAndDomainListConfig(
   code: CodeListCode,
   origin: CodeListOrigin,
   keyProperty: String,
-  phase: String,
-  domain: String
+  phase: Phase,
+  domain: Domain
 ) extends ListConfig

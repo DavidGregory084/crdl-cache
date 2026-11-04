@@ -23,6 +23,7 @@ import org.mongodb.scala.model.Filters.*
 import play.api.Logging
 import play.api.libs.json.*
 import uk.gov.hmrc.crdlcache.models
+import uk.gov.hmrc.crdlcache.models.CodeListCode.code
 import uk.gov.hmrc.crdlcache.models.errors.MongoError
 import uk.gov.hmrc.crdlcache.models.{CodeListCode, CodeListEntry, CorrespondenceListInstruction}
 import uk.gov.hmrc.mongo.MongoComponent

@@ -20,14 +20,14 @@ import com.mongodb.client.model.{IndexModel, IndexOptions, UpdateOptions}
 import org.mongodb.scala.*
 import org.mongodb.scala.bson.BsonNull
 import org.mongodb.scala.model.Filters.*
-import org.mongodb.scala.model.{Filters, Indexes, Updates}
+import org.mongodb.scala.model.{Filters, Indexes, Sorts, Updates}
+import uk.gov.hmrc.crdlcache.models.CodeListCode.code
 import uk.gov.hmrc.crdlcache.models.errors.MongoError
 import uk.gov.hmrc.crdlcache.models.formats.MongoFormats
-import uk.gov.hmrc.crdlcache.models.{CodeListCode, LastUpdated}
+import uk.gov.hmrc.crdlcache.models.{CodeListCode, Domain, LastUpdated, Phase}
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
 import uk.gov.hmrc.mongo.transaction.Transactions
-import org.mongodb.scala.model.Sorts
 
 import java.time.Instant
 import javax.inject.{Inject, Singleton}
@@ -55,8 +55,8 @@ class LastUpdatedRepository @Inject() (val mongoComponent: MongoComponent)(using
 
   def fetchLastUpdated(
     codeListCode: CodeListCode,
-    phase: Option[String],
-    domain: Option[String]
+    phase: Option[Phase],
+    domain: Option[Domain]
   ): Future[Option[LastUpdated]] = {
     collection
       .find(
@@ -77,8 +77,8 @@ class LastUpdatedRepository @Inject() (val mongoComponent: MongoComponent)(using
     session: ClientSession,
     codeListCode: CodeListCode,
     snapshotVersion: Long,
-    phase: Option[String],
-    domain: Option[String],
+    phase: Option[Phase],
+    domain: Option[Domain],
     lastUpdated: Instant
   ): Future[Unit] = {
     val filter = (phase, domain) match {
@@ -115,11 +115,11 @@ class LastUpdatedRepository @Inject() (val mongoComponent: MongoComponent)(using
   }
 
   private def snapshotFilters(
-    codeListCode: Option[String],
-    phase: Option[String],
-    domain: Option[String]
+    codeListCode: Option[CodeListCode],
+    phase: Option[Phase],
+    domain: Option[Domain]
   ): Seq[org.mongodb.scala.bson.conversions.Bson] = {
-    val codeFilter   = codeListCode.map(c => regex("codeListCode", c, "i")).toSeq
+    val codeFilter   = codeListCode.map(c => regex("codeListCode", c.code, "i")).toSeq
     val phaseFilter  = phase.map(p => equal("phase", p)).toSeq
     val domainFilter = domain.map(d => equal("domain", d)).toSeq
     codeFilter ++ phaseFilter ++ domainFilter
@@ -128,9 +128,9 @@ class LastUpdatedRepository @Inject() (val mongoComponent: MongoComponent)(using
   def fetchAllLastUpdatedPaged(
     pageNum: Int,
     pageSize: Int,
-    codeListCode: Option[String] = None,
-    phase: Option[String] = None,
-    domain: Option[String] = None
+    codeListCode: Option[CodeListCode] = None,
+    phase: Option[Phase] = None,
+    domain: Option[Domain] = None
   ): Future[Seq[LastUpdated]] = {
     val filters = snapshotFilters(codeListCode, phase, domain)
     val query   = if (filters.isEmpty) collection.find() else collection.find(and(filters*))
@@ -142,9 +142,9 @@ class LastUpdatedRepository @Inject() (val mongoComponent: MongoComponent)(using
   }
 
   def codeListCount(
-    codeListCode: Option[String] = None,
-    phase: Option[String] = None,
-    domain: Option[String] = None
+    codeListCode: Option[CodeListCode] = None,
+    phase: Option[Phase] = None,
+    domain: Option[Domain] = None
   ): Future[Long] = {
     val filters = snapshotFilters(codeListCode, phase, domain)
     if (filters.isEmpty) collection.countDocuments().toFuture()

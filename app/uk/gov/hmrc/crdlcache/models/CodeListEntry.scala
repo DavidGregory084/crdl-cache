@@ -28,8 +28,8 @@ case class CodeListEntry(
   activeTo: Option[Instant],
   updatedAt: Option[Instant],
   properties: JsObject,
-  phase: Option[String],
-  domain: Option[String]
+  phase: Option[Phase],
+  domain: Option[Domain]
 )
 
 object CodeListEntry {

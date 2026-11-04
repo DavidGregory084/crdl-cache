@@ -26,17 +26,13 @@ import org.mongodb.scala.model.Filters.*
 import org.mongodb.scala.model.Projections.*
 import play.api.Logging
 import play.api.libs.json.Format
+import uk.gov.hmrc.crdlcache.models.*
 import uk.gov.hmrc.crdlcache.models.CustomsOfficeListsInstruction.{
   RecordMissingCustomsOffice,
   UpsertCustomsOffice
 }
 import uk.gov.hmrc.crdlcache.models.errors.MongoError
 import uk.gov.hmrc.crdlcache.models.formats.MongoFormats
-import uk.gov.hmrc.crdlcache.models.{
-  CustomsOffice,
-  CustomsOfficeListsInstruction,
-  CustomsOfficeSummary
-}
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.{Codecs, PlayMongoRepository}
 import uk.gov.hmrc.mongo.transaction.Transactions
@@ -162,8 +158,8 @@ class CustomsOfficeListsRepository @Inject() (val mongoComponent: MongoComponent
     countryCodes: Option[Set[String]],
     roles: Option[Set[String]],
     activeAt: Instant,
-    phase: Option[String],
-    domain: Option[String],
+    phase: Option[Phase],
+    domain: Option[Domain],
     roleDate: Option[LocalDate] = None
   ): Future[Seq[CustomsOffice]] = {
     val mandatoryFilters =
@@ -241,8 +237,8 @@ class CustomsOfficeListsRepository @Inject() (val mongoComponent: MongoComponent
     referenceNumber: Option[String] = None,
     countryCode: Option[String] = None,
     officeName: Option[String] = None,
-    phase: Option[String],
-    domain: Option[String]
+    phase: Option[Phase],
+    domain: Option[Domain]
   ): List[Bson] = {
 
     val mandatoryFilters = List(
@@ -270,8 +266,8 @@ class CustomsOfficeListsRepository @Inject() (val mongoComponent: MongoComponent
     referenceNumber: Option[String] = None,
     countryCode: Option[String] = None,
     officeName: Option[String] = None,
-    phase: Option[String],
-    domain: Option[String]
+    phase: Option[Phase],
+    domain: Option[Domain]
   ): Future[Seq[CustomsOfficeSummary]] =
     collection
       .find[CustomsOfficeSummary](
@@ -307,8 +303,8 @@ class CustomsOfficeListsRepository @Inject() (val mongoComponent: MongoComponent
     referenceNumber: Option[String] = None,
     countryCode: Option[String] = None,
     officeName: Option[String] = None,
-    phase: Option[String],
-    domain: Option[String]
+    phase: Option[Phase],
+    domain: Option[Domain]
   ): Future[Long] =
     collection
       .countDocuments(

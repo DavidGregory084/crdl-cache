@@ -233,8 +233,8 @@ class CustomsOfficeListsControllerSpec
           )
         )
       ),
-      Some("P6"),
-      Some("NCTS")
+      Some(Phase.NCTS6),
+      Some(Domain.NCTS)
     )
   )
 
@@ -352,7 +352,7 @@ class CustomsOfficeListsControllerSpec
   )
 
   private val testSummary =
-    CustomsOfficeSummary("GB000060", "GB", "Dover", Some("P6"), Some("NCTS"))
+    CustomsOfficeSummary("GB000060", "GB", "Dover", Some(Phase.NCTS6), Some(Domain.NCTS))
 
   private val testSummaryJson = Json.obj(
     "referenceNumber"        -> "GB000060",
@@ -408,8 +408,8 @@ class CustomsOfficeListsControllerSpec
         equalTo(None),
         equalTo(None),
         equalTo(fixedInstant),
-        equalTo(Some("P6")),
-        equalTo(Some("NCTS")),
+        equalTo(Some(Phase.NCTS6)),
+        equalTo(Some(Domain.NCTS)),
         equalTo(None)
       )
     )
@@ -1237,8 +1237,8 @@ class CustomsOfficeListsControllerSpec
         equalTo(None),
         equalTo(None),
         equalTo(None),
-        equalTo(Some("P6")),
-        equalTo(Some("NCTS"))
+        equalTo(Some(Phase.NCTS6)),
+        equalTo(Some(Domain.NCTS))
       )
     )
       .thenReturn(Future.successful(Seq(testSummary)))
@@ -1248,8 +1248,8 @@ class CustomsOfficeListsControllerSpec
         equalTo(None),
         equalTo(None),
         equalTo(None),
-        equalTo(Some("P6")),
-        equalTo(Some("NCTS"))
+        equalTo(Some(Phase.NCTS6)),
+        equalTo(Some(Domain.NCTS))
       )
     )
       .thenReturn(Future.successful(1L))
@@ -1278,8 +1278,8 @@ class CustomsOfficeListsControllerSpec
         equalTo(Some("GB000060")),
         equalTo(Some("GB")),
         equalTo(Some("Dover")),
-        equalTo(Some("P6")),
-        equalTo(Some("NCTS"))
+        equalTo(Some(Phase.NCTS6)),
+        equalTo(Some(Domain.NCTS))
       )
     )
       .thenReturn(Future.successful(Seq(testSummary)))
@@ -1289,8 +1289,8 @@ class CustomsOfficeListsControllerSpec
         equalTo(Some("GB000060")),
         equalTo(Some("GB")),
         equalTo(Some("Dover")),
-        equalTo(Some("P6")),
-        equalTo(Some("NCTS"))
+        equalTo(Some(Phase.NCTS6)),
+        equalTo(Some(Domain.NCTS))
       )
     )
       .thenReturn(Future.successful(1L))
