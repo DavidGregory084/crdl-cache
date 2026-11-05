@@ -16,15 +16,15 @@
 
 package uk.gov.hmrc.crdlcache.models
 
-import play.api.libs.json.*
 import play.api.libs.functional.syntax.*
+import play.api.libs.json.*
 
 final case class CustomsOfficeSummary(
   referenceNumber: String,
   countryCode: String,
   customsOfficeUsualName: String,
-  phase: Option[String],
-  domain: Option[String]
+  phase: Option[Phase],
+  domain: Option[Domain]
 )
 
 object CustomsOfficeSummary {
@@ -32,8 +32,8 @@ object CustomsOfficeSummary {
     (__ \ "referenceNumber").read[String] and
       (__ \ "countryCode").read[String] and
       (__ \ "customsOfficeLsd" \ "customsOfficeUsualName").read[String] and
-      (__ \ "phase").readNullable[String] and
-      (__ \ "domain").readNullable[String]
+      (__ \ "phase").readNullable[Phase] and
+      (__ \ "domain").readNullable[Domain]
   )(CustomsOfficeSummary.apply _)
 
   given writes: Writes[CustomsOfficeSummary] = Json.writes[CustomsOfficeSummary]

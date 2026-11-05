@@ -25,8 +25,8 @@ enum Instruction {
   case RecordMissingEntry(
     codeListCode: CodeListCode,
     override val key: String,
-    phase: Option[String],
-    domain: Option[String],
+    phase: Option[Phase],
+    domain: Option[Domain],
     removedAt: Instant
   )
 

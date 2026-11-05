@@ -18,7 +18,7 @@ package uk.gov.hmrc.crdlcache.config
 
 import com.typesafe.config.Config
 import play.api.Configuration
-import uk.gov.hmrc.crdlcache.models.{CodeListCode, CodeListOrigin}
+import uk.gov.hmrc.crdlcache.models.{CodeListCode, CodeListOrigin, Domain, Phase}
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 
 import java.time.LocalDate
@@ -41,13 +41,15 @@ class AppConfig @Inject() (val config: Configuration) extends ServicesConfig(con
   val importCorrespondenceListsSchedule: String =
     config.get[String]("import-correspondence-lists.schedule")
 
-  val importOfficesJobPhase: Option[String]  = config.get[Option[String]]("import-offices.phase")
-  val importOfficesJobDomain: Option[String] = config.get[Option[String]]("import-offices.domain")
+  val importOfficesJobPhase: Option[Phase] =
+    config.get[Option[String]]("import-offices.phase").map(Phase.apply)
+  val importOfficesJobDomain: Option[Domain] =
+    config.get[Option[String]]("import-offices.domain").map(Domain.apply)
 
   val defaultLastUpdated: LocalDate =
     LocalDate.parse(config.get[String]("last-updated-date.default"))
 
-  val customsOfficesPageSize = config.get[Int]("customsOfficesPageSize")
+  val customsOfficesPageSize: Int = config.get[Int]("customsOfficesPageSize")
 
   private def loadListConfigs[T](configPath: String)(mapper: Config => T): List[T] = {
     val listElementName = configPath.split("import-").last
@@ -60,31 +62,31 @@ class AppConfig @Inject() (val config: Configuration) extends ServicesConfig(con
   val codeListConfigs: List[CodeListConfig] =
     loadListConfigs("import-codelists") { codeListConfig =>
       CodeListConfig(
-        CodeListCode.fromString(codeListConfig.getString("code")),
+        CodeListCode(codeListConfig.getString("code")),
         CodeListOrigin.valueOf(codeListConfig.getString("origin")),
         codeListConfig.getString("keyProperty")
       )
-    }.toList
+    }
 
   val phaseAndDomainListConfigs: List[PhaseAndDomainListConfig] =
     loadListConfigs("import-pd-lists") { codeListConfig =>
       PhaseAndDomainListConfig(
-        CodeListCode.fromString(codeListConfig.getString("code")),
+        CodeListCode(codeListConfig.getString("code")),
         CodeListOrigin.valueOf(codeListConfig.getString("origin")),
         codeListConfig.getString("keyProperty"),
-        config.get[String]("import-pd-lists.phase"),
-        config.get[String]("import-pd-lists.domain")
+        Phase(config.get[String]("import-pd-lists.phase")),
+        Domain(config.get[String]("import-pd-lists.domain"))
       )
-    }.toList
+    }
 
   val correspondenceListConfigs: List[CorrespondenceListConfig] =
     loadListConfigs("import-correspondence-lists") { correspondenceListConfig =>
       CorrespondenceListConfig(
-        CodeListCode.fromString(correspondenceListConfig.getString("code")),
+        CodeListCode(correspondenceListConfig.getString("code")),
         CodeListOrigin.valueOf(correspondenceListConfig.getString("origin")),
         correspondenceListConfig.getString("keyProperty"),
         correspondenceListConfig.getString("valueProperty")
       )
-    }.toList
+    }
 
 }

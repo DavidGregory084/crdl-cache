@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 HM Revenue & Customs
+ * Copyright 2026 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,24 @@
 
 package uk.gov.hmrc.crdlcache.models
 
-enum CodeListType {
-  case STANDARD, CORRESPONDENCE, PD
+import play.api.libs.json.{Format, Reads, Writes}
+import play.api.mvc.QueryStringBindable
+
+opaque type Domain = String
+
+object Domain {
+  def apply(value: String): Domain = value
+
+  val NCTS: Domain   = Domain("NCTS")
+  val Excise: Domain = Domain("Excise")
+  val REX: Domain    = Domain("REX")
+  val VPD: Domain    = Domain("Excise-VapingDuty")
+
+  given Format[Domain] = Format(Reads.StringReads, Writes.StringWrites)
+
+  given QueryStringBindable[Domain] = QueryStringBindable.bindableString
+
+  extension (domain: Domain) {
+    def value: String = domain
+  }
 }

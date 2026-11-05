@@ -18,18 +18,15 @@ package uk.gov.hmrc.crdlcache.repositories
 
 import org.mongodb.scala.*
 import org.mongodb.scala.model.{Filters, Sorts}
-import org.scalatest.OptionValues
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.must.Matchers
-import uk.gov.hmrc.crdlcache.models.{
-  CustomsOffice,
-  CustomsOfficeDetail,
-  CustomsOfficeTimetable,
-  RoleTrafficCompetence,
-  TimetableLine
+import org.scalatest.{Assertion, OptionValues}
+import uk.gov.hmrc.crdlcache.models.*
+import uk.gov.hmrc.crdlcache.models.CustomsOfficeListsInstruction.{
+  RecordMissingCustomsOffice,
+  UpsertCustomsOffice
 }
-
 import uk.gov.hmrc.mongo.test.{
   CleanMongoCollectionSupport,
   IndexedMongoQueriesSupport,
@@ -37,17 +34,10 @@ import uk.gov.hmrc.mongo.test.{
 }
 import uk.gov.hmrc.mongo.transaction.TransactionConfiguration
 
-import scala.concurrent.duration.*
-import scala.concurrent.{ExecutionContext, Future}
-import org.scalatest.Assertion
-import uk.gov.hmrc.crdlcache.models.CustomsOfficeListsInstruction.{
-  RecordMissingCustomsOffice,
-  UpsertCustomsOffice
-}
-
 import java.time.format.DateTimeFormatter
 import java.time.{DayOfWeek, Instant, LocalDate, LocalTime}
-import uk.gov.hmrc.crdlcache.models.CustomsOfficeSummary
+import scala.concurrent.duration.*
+import scala.concurrent.{ExecutionContext, Future}
 
 class CustomsOfficeListsRepositorySpec
   extends AnyFlatSpec
@@ -221,8 +211,8 @@ class CustomsOfficeListsRepositorySpec
         )
       )
     ),
-    Some("P6"),
-    Some("NCTS")
+    Some(Phase.NCTS6),
+    Some(Domain.NCTS)
   )
 
   val DK003104_P5D = CustomsOffice(
@@ -295,8 +285,8 @@ class CustomsOfficeListsRepositorySpec
         )
       )
     ),
-    Some("P5"),
-    Some("NCTS")
+    Some(Phase.NCTS5),
+    Some(Domain.NCTS)
   )
 
   val DK003105_P6D = CustomsOffice(
@@ -367,8 +357,8 @@ class CustomsOfficeListsRepositorySpec
         )
       )
     ),
-    Some("P6"),
-    Some("NCTS")
+    Some(Phase.NCTS6),
+    Some(Domain.NCTS)
   )
 
   val IT223102_P6D = CustomsOffice(
@@ -440,8 +430,8 @@ class CustomsOfficeListsRepositorySpec
         )
       )
     ),
-    Some("P6"),
-    Some("NCTS")
+    Some(Phase.NCTS6),
+    Some(Domain.NCTS)
   )
 
   val invalidatedoffice = CustomsOffice(
@@ -981,8 +971,8 @@ class CustomsOfficeListsRepositorySpec
         countryCodes = None,
         roles = None,
         activeAt = Instant.parse("2025-06-05T00:00:00Z"),
-        phase = Some("P6"),
-        domain = Some("NCTS")
+        phase = Some(Phase.NCTS6),
+        domain = Some(Domain.NCTS)
       )
       .map { result =>
         result must contain allOf (DK003103_P6D, DK003105_P6D, IT223102_P6D)
@@ -999,8 +989,8 @@ class CustomsOfficeListsRepositorySpec
         countryCodes = None,
         roles = None,
         activeAt = Instant.parse("2025-06-05T00:00:00Z"),
-        phase = Some("P5"),
-        domain = Some("NCTS")
+        phase = Some(Phase.NCTS5),
+        domain = Some(Domain.NCTS)
       )
       .map { result =>
         result must contain(DK003104_P5D)
@@ -1035,8 +1025,8 @@ class CustomsOfficeListsRepositorySpec
         countryCodes = None,
         roles = None,
         activeAt = Instant.parse("2025-06-05T00:00:00Z"),
-        phase = Some("P6"),
-        domain = Some("NCTS")
+        phase = Some(Phase.NCTS6),
+        domain = Some(Domain.NCTS)
       )
       .map { result =>
         result must contain(DK003105_P6D)
@@ -1053,8 +1043,8 @@ class CustomsOfficeListsRepositorySpec
         countryCodes = Some(Set("IT")),
         roles = None,
         activeAt = Instant.parse("2025-06-05T00:00:00Z"),
-        phase = Some("P6"),
-        domain = Some("NCTS")
+        phase = Some(Phase.NCTS6),
+        domain = Some(Domain.NCTS)
       )
       .map { result =>
         result must contain(IT223102_P6D)
@@ -1071,8 +1061,8 @@ class CustomsOfficeListsRepositorySpec
         countryCodes = None,
         roles = Some(Set("PLA")),
         activeAt = Instant.parse("2025-06-05T00:00:00Z"),
-        phase = Some("P6"),
-        domain = Some("NCTS")
+        phase = Some(Phase.NCTS6),
+        domain = Some(Domain.NCTS)
       )
       .map { result =>
         result must contain allOf (DK003103_P6D, IT223102_P6D)
@@ -1089,8 +1079,8 @@ class CustomsOfficeListsRepositorySpec
         countryCodes = Some(Set("DK")),
         roles = None,
         activeAt = Instant.parse("2025-06-05T00:00:00Z"),
-        phase = Some("P20"),
-        domain = Some("INVALID")
+        phase = Some(Phase("P20")),
+        domain = Some(Domain("INVALID"))
       )
       .map(_ mustBe empty)
   }

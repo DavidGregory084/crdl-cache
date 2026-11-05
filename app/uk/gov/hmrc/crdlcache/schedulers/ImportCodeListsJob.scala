@@ -24,17 +24,16 @@ import org.quartz.{DisallowConcurrentExecution, Job, JobExecutionContext}
 import play.api.Logging
 import uk.gov.hmrc.crdlcache.config.{AppConfig, ListConfig, PhaseAndDomainListConfig}
 import uk.gov.hmrc.crdlcache.connectors.DpsConnector
-import uk.gov.hmrc.crdlcache.models.{CodeListCode, CodeListSnapshot, CodeListSnapshotEntry}
-import uk.gov.hmrc.crdlcache.models.Instruction
+import uk.gov.hmrc.crdlcache.models.*
+import uk.gov.hmrc.crdlcache.models.CodeListCode.code
 import uk.gov.hmrc.crdlcache.repositories.{CodeListsRepository, LastUpdatedRepository}
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.lock.{LockService, MongoLockRepository}
 import uk.gov.hmrc.mongo.transaction.{TransactionConfiguration, Transactions}
 
-import java.time.{Clock, ZoneOffset}
+import java.time.{Clock, Instant, ZoneOffset}
 import scala.concurrent.duration.*
 import scala.concurrent.{Await, ExecutionContext, Future}
-import java.time.Instant
 
 @DisallowConcurrentExecution
 abstract class ImportCodeListsJob[K, I](
@@ -69,8 +68,8 @@ abstract class ImportCodeListsJob[K, I](
     session: ClientSession,
     listConfig: ListConfig,
     newSnapshot: CodeListSnapshot,
-    phase: Option[String] = None,
-    domain: Option[String] = None
+    phase: Option[Phase] = None,
+    domain: Option[Domain] = None
   ): Future[List[I]] = {
     logger.info(
       s"Importing ${listConfig.origin} codelist ${listConfig.code.code} (${newSnapshot.name}) version ${newSnapshot.version}"

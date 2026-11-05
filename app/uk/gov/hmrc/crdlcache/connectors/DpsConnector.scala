@@ -23,9 +23,10 @@ import org.apache.pekko.stream.scaladsl
 import org.apache.pekko.stream.scaladsl.Source
 import play.api.Logging
 import uk.gov.hmrc.crdlcache.config.AppConfig
-import uk.gov.hmrc.crdlcache.models.CodeListCode
+import uk.gov.hmrc.crdlcache.models.CodeListCode.code
 import uk.gov.hmrc.crdlcache.models.dps.codelist.CodeListResponse
 import uk.gov.hmrc.crdlcache.models.dps.col.CustomsOfficeListResponse
+import uk.gov.hmrc.crdlcache.models.{CodeListCode, Domain, Phase}
 import uk.gov.hmrc.http.HttpReads.Implicits.*
 import uk.gov.hmrc.http.UpstreamErrorResponse.{Upstream4xxResponse, Upstream5xxResponse}
 import uk.gov.hmrc.http.client.HttpClientV2
@@ -72,8 +73,8 @@ class DpsConnector @Inject() (httpClient: HttpClientV2, appConfig: AppConfig)(us
     code: CodeListCode,
     lastUpdatedDate: Instant,
     startIndex: Int,
-    businessDomainPhase: Option[String] = None,
-    businessDomain: Option[String] = None
+    businessDomainPhase: Option[Phase] = None,
+    businessDomain: Option[Domain] = None
   )(using ec: ExecutionContext): Future[CodeListResponse] = {
     val baseQueryParams = Map(
       "code_list_code"    -> code.code,
@@ -121,8 +122,8 @@ class DpsConnector @Inject() (httpClient: HttpClientV2, appConfig: AppConfig)(us
   def fetchCodeListSnapshots(
     code: CodeListCode,
     lastUpdatedDate: Instant,
-    businessDomainPhase: Option[String] = None,
-    businessDomain: Option[String] = None
+    businessDomainPhase: Option[Phase] = None,
+    businessDomain: Option[Domain] = None
   )(using
     ec: ExecutionContext
   ): Source[CodeListResponse, NotUsed] = Source
@@ -137,8 +138,8 @@ class DpsConnector @Inject() (httpClient: HttpClientV2, appConfig: AppConfig)(us
     }
 
   def fetchCustomsOfficeLists(
-    phase: Option[String] = None,
-    domain: Option[String] = None
+    phase: Option[Phase] = None,
+    domain: Option[Domain] = None
   )(using
     ec: ExecutionContext
   ): Source[CustomsOfficeListResponse, NotUsed] = Source
@@ -153,8 +154,8 @@ class DpsConnector @Inject() (httpClient: HttpClientV2, appConfig: AppConfig)(us
 
   private def fetchCustomsOfficeList(
     startIndex: Int,
-    phase: Option[String] = None,
-    domain: Option[String] = None
+    phase: Option[Phase] = None,
+    domain: Option[Domain] = None
   )(using ec: ExecutionContext): Future[CustomsOfficeListResponse] = {
     val baseQueryParams = Map(
       "$start_index" -> startIndex,

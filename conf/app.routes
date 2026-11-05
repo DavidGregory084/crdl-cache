@@ -1,13 +1,13 @@
 # microservice specific routes
 
 GET        /lists               uk.gov.hmrc.crdlcache.controllers.CodeListsController.fetchCodeListVersions
-GET        /lists/:code         uk.gov.hmrc.crdlcache.controllers.CodeListsController.fetchCodeListEntries(code: CodeListCode, keys: Option[Set[String]] ?= None, properties: Option[Map[String, JsValue]] ?= None, activeAt: Option[Instant], phase: Option[String], domain: Option[String])
-GET        /offices             uk.gov.hmrc.crdlcache.controllers.CustomsOfficeListsController.fetchCustomsOfficeLists(referenceNumbers: Option[Set[String]] ?= None, countryCodes: Option[Set[String]] ?= None, roles: Option[Set[String]] ?= None, activeAt: Option[Instant], phase: Option[String], domain: Option[String], roleDate: Option[LocalDate] ?= None)
+GET        /lists/:code         uk.gov.hmrc.crdlcache.controllers.CodeListsController.fetchCodeListEntries(code: String, keys: Option[Set[String]] ?= None, properties: Option[Map[String, JsValue]] ?= None, activeAt: Option[Instant], phase: Option[Phase], domain: Option[Domain])
+GET        /offices             uk.gov.hmrc.crdlcache.controllers.CustomsOfficeListsController.fetchCustomsOfficeLists(referenceNumbers: Option[Set[String]] ?= None, countryCodes: Option[Set[String]] ?= None, roles: Option[Set[String]] ?= None, activeAt: Option[Instant], phase: Option[Phase], domain: Option[Domain], roleDate: Option[LocalDate] ?= None)
 
 # Admin endpoints to support crdl-cache-admin-frontend
 
-GET     /admin/offices/summaries            uk.gov.hmrc.crdlcache.controllers.CustomsOfficeListsController.fetchCustomsOfficeListSummaries(pageNum: Int, pageSize: Int, activeAt: Option[Instant], referenceNumber: Option[String], countryCode: Option[String], officeName: Option[String], phase: Option[String], domain: Option[String])
+GET     /admin/offices/summaries            uk.gov.hmrc.crdlcache.controllers.CustomsOfficeListsController.fetchCustomsOfficeListSummaries(pageNum: Int, pageSize: Int, activeAt: Option[Instant], referenceNumber: Option[String], countryCode: Option[String], officeName: Option[String], phase: Option[Phase], domain: Option[Domain])
 GET     /admin/offices/:referenceNumber     uk.gov.hmrc.crdlcache.controllers.CustomsOfficeListsController.fetchCustomsOfficeDetail(referenceNumber: String, activeAt: Option[Instant])
-GET     /admin/lists                        uk.gov.hmrc.crdlcache.controllers.CodeListsController.fetchCodeListVersionsPaged(pageNum: Int, pageSize: Int, codeListCode: Option[String], phase: Option[String], domain: Option[String])
-GET     /admin/lists/:code/entries          uk.gov.hmrc.crdlcache.controllers.CodeListsController.fetchCodeListEntriesPaginated(code: CodeListCode, pageNum: Int, pageSize: Int, activeAt: Option[Instant], key: Option[String], value: Option[String])
-GET     /admin/snapshot/:code               uk.gov.hmrc.crdlcache.controllers.CodeListsController.getSnapshot(code: String, phase: Option[String] ?= None, domain: Option[String] ?= None)
+GET     /admin/lists                        uk.gov.hmrc.crdlcache.controllers.CodeListsController.fetchCodeListVersionsPaged(pageNum: Int, pageSize: Int, codeListCode: Option[String], phase: Option[Phase], domain: Option[Domain])
+GET     /admin/lists/:code/entries          uk.gov.hmrc.crdlcache.controllers.CodeListsController.fetchCodeListEntriesPaginated(code: String, pageNum: Int, pageSize: Int, activeAt: Option[Instant], key: Option[String], value: Option[String])
+GET     /admin/snapshot/:code               uk.gov.hmrc.crdlcache.controllers.CodeListsController.getSnapshot(code: String, phase: Option[Phase] ?= None, domain: Option[Domain] ?= None)

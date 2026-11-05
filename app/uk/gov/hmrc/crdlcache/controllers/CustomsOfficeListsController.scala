@@ -16,14 +16,15 @@
 
 package uk.gov.hmrc.crdlcache.controllers
 
-import play.api.mvc.{Action, AnyContent, ControllerComponents}
-import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
-import uk.gov.hmrc.crdlcache.repositories.CustomsOfficeListsRepository
 import play.api.libs.json.Json
+import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import uk.gov.hmrc.crdlcache.controllers.auth.Permissions.ReadCustomsOfficeLists
+import uk.gov.hmrc.crdlcache.models.{Domain, Phase}
 import uk.gov.hmrc.crdlcache.models.formats.HttpFormats
 import uk.gov.hmrc.crdlcache.models.paging.PagedResult
+import uk.gov.hmrc.crdlcache.repositories.CustomsOfficeListsRepository
 import uk.gov.hmrc.internalauth.client.*
+import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 import java.time.{Clock, Instant, LocalDate}
 import javax.inject.{Inject, Singleton}
@@ -39,7 +40,7 @@ class CustomsOfficeListsController @Inject() (
   extends BackendController(cc)
   with HttpFormats {
 
-  private def validatePhaseDomain(phase: Option[String], domain: Option[String]): Option[String] =
+  private def validatePhaseDomain(phase: Option[Phase], domain: Option[Domain]): Option[String] =
     (phase, domain) match {
       case (Some(_), None) | (None, Some(_)) =>
         Some("Both phase and domain must be provided together, or neither should be provided")
@@ -51,8 +52,8 @@ class CustomsOfficeListsController @Inject() (
     countryCodes: Option[Set[String]],
     roles: Option[Set[String]],
     activeAt: Option[Instant],
-    phase: Option[String],
-    domain: Option[String],
+    phase: Option[Phase],
+    domain: Option[Domain],
     roleDate: Option[LocalDate]
   ): Action[AnyContent] = auth.authorizedAction(ReadCustomsOfficeLists).async { _ =>
     if (roleDate.isDefined && roles.isEmpty)
@@ -100,8 +101,8 @@ class CustomsOfficeListsController @Inject() (
     referenceNumber: Option[String],
     countryCode: Option[String],
     officeName: Option[String],
-    phase: Option[String],
-    domain: Option[String]
+    phase: Option[Phase],
+    domain: Option[Domain]
   ): Action[AnyContent] = auth.authorizedAction(ReadCustomsOfficeLists).async { _ =>
     val resolvedActiveAt = activeAt.getOrElse(clock.instant())
     val summariesFuture = customsOfficeListsRepository

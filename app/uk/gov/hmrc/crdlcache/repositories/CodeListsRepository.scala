@@ -25,9 +25,10 @@ import org.mongodb.scala.model.*
 import org.mongodb.scala.model.Filters.*
 import play.api.libs.json.*
 import uk.gov.hmrc.crdlcache.models
+import uk.gov.hmrc.crdlcache.models.CodeListCode.code
 import uk.gov.hmrc.crdlcache.models.errors.MongoError
 import uk.gov.hmrc.crdlcache.models.formats.MongoFormats
-import uk.gov.hmrc.crdlcache.models.{CodeListCode, CodeListEntry}
+import uk.gov.hmrc.crdlcache.models.{CodeListCode, CodeListEntry, Domain, Phase}
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
 import uk.gov.hmrc.mongo.transaction.Transactions
@@ -73,8 +74,8 @@ abstract class CodeListsRepository[K, I](
   def fetchEntryKeys(
     session: ClientSession,
     code: CodeListCode,
-    phase: Option[String] = None,
-    domain: Option[String] = None
+    phase: Option[Phase] = None,
+    domain: Option[Domain] = None
   ): Future[Set[K]] =
     collection
       .find(
@@ -99,8 +100,8 @@ abstract class CodeListsRepository[K, I](
     filterKeys: Option[Set[String]],
     filterProperties: Option[Map[String, JsValue]],
     activeAt: Instant,
-    phase: Option[String],
-    domain: Option[String]
+    phase: Option[Phase],
+    domain: Option[Domain]
   ): Future[Seq[CodeListEntry]] = {
     val mandatoryFilters = List(
       equal("codeListCode", code.code),

@@ -31,6 +31,7 @@ import uk.gov.hmrc.crdlcache.models.CodeListCode.BC08
 import uk.gov.hmrc.crdlcache.models.dps.*
 import uk.gov.hmrc.crdlcache.models.dps.codelist.*
 import uk.gov.hmrc.crdlcache.models.dps.col.*
+import uk.gov.hmrc.crdlcache.models.{Domain, Phase}
 import uk.gov.hmrc.http.test.{HttpClientV2Support, WireMockSupport}
 import uk.gov.hmrc.http.{HeaderCarrier, UpstreamErrorResponse}
 
@@ -82,8 +83,8 @@ class DpsConnectorSpec
     )
   )
 
-  private val phase: Option[String] = Some("P6")
-  private val domain: Option[String] = Some("NCTS")
+  private val phase: Option[Phase]   = Some(Phase.NCTS6)
+  private val domain: Option[Domain] = Some(Domain.NCTS)
 
   private val connector =
     new DpsConnector(
@@ -196,35 +197,37 @@ class DpsConnectorSpec
             "VIALE PIETRAMELLARA, 1/2"
           )
         ),
-        List(DpsCustomsOfficeTimetable(
-          "1",
-          Some("ALL YEAR"),
-          "20180101",
-          "20991231",
-          List(
-            DpsTimetableLine(
-              Some("1"),
-              Some("0800"),
-              Some("1800"),
-              Some("6"),
-              None,
-              None,
-              Some(
-                List(
-                  DpsRoleTrafficCompetence("EXC", "R"),
-                  DpsRoleTrafficCompetence("REG", "N/A"),
-                  DpsRoleTrafficCompetence("SCO", "N/A"),
-                  DpsRoleTrafficCompetence("PLA", "N/A"),
-                  DpsRoleTrafficCompetence("DIS", "N/A"),
-                  DpsRoleTrafficCompetence("RFC", "N/A"),
-                  DpsRoleTrafficCompetence("EXT", "N/A"),
-                  DpsRoleTrafficCompetence("EXP", "N/A"),
-                  DpsRoleTrafficCompetence("IPR", "N/A")
+        List(
+          DpsCustomsOfficeTimetable(
+            "1",
+            Some("ALL YEAR"),
+            "20180101",
+            "20991231",
+            List(
+              DpsTimetableLine(
+                Some("1"),
+                Some("0800"),
+                Some("1800"),
+                Some("6"),
+                None,
+                None,
+                Some(
+                  List(
+                    DpsRoleTrafficCompetence("EXC", "R"),
+                    DpsRoleTrafficCompetence("REG", "N/A"),
+                    DpsRoleTrafficCompetence("SCO", "N/A"),
+                    DpsRoleTrafficCompetence("PLA", "N/A"),
+                    DpsRoleTrafficCompetence("DIS", "N/A"),
+                    DpsRoleTrafficCompetence("RFC", "N/A"),
+                    DpsRoleTrafficCompetence("EXT", "N/A"),
+                    DpsRoleTrafficCompetence("EXP", "N/A"),
+                    DpsRoleTrafficCompetence("IPR", "N/A")
+                  )
                 )
               )
             )
           )
-        ))
+        )
       ),
       DpsCustomsOffice(
         RDEntryStatus("valid", "01-05-2025"),
@@ -261,43 +264,45 @@ class DpsConnectorSpec
             "VIA DELL'AEROPORTO, 1"
           )
         ),
-        List(DpsCustomsOfficeTimetable(
-          "1",
-          Some("ALL YEAR"),
-          "20180101",
-          "20991231",
-          List(
-            DpsTimetableLine(
-              Some("1"),
-              Some("0000"),
-              Some("2359"),
-              Some("6"),
-              None,
-              None,
-              Some(
-                List(
-                  DpsRoleTrafficCompetence("DEP", "AIR"),
-                  DpsRoleTrafficCompetence("INC", "AIR"),
-                  DpsRoleTrafficCompetence("TXT", "AIR"),
-                  DpsRoleTrafficCompetence("DES", "AIR"),
-                  DpsRoleTrafficCompetence("ENQ", "N/A"),
-                  DpsRoleTrafficCompetence("ENT", "AIR"),
-                  DpsRoleTrafficCompetence("EXC", "N/A"),
-                  DpsRoleTrafficCompetence("EXP", "AIR"),
-                  DpsRoleTrafficCompetence("EXT", "AIR"),
-                  DpsRoleTrafficCompetence("REC", "N/A"),
-                  DpsRoleTrafficCompetence("REG", "N/A"),
-                  DpsRoleTrafficCompetence("TRA", "AIR"),
-                  DpsRoleTrafficCompetence("EIN", "AIR"),
-                  DpsRoleTrafficCompetence("PLA", "N/A"),
-                  DpsRoleTrafficCompetence("DIS", "N/A"),
-                  DpsRoleTrafficCompetence("RFC", "N/A"),
-                  DpsRoleTrafficCompetence("IPR", "N/A")
+        List(
+          DpsCustomsOfficeTimetable(
+            "1",
+            Some("ALL YEAR"),
+            "20180101",
+            "20991231",
+            List(
+              DpsTimetableLine(
+                Some("1"),
+                Some("0000"),
+                Some("2359"),
+                Some("6"),
+                None,
+                None,
+                Some(
+                  List(
+                    DpsRoleTrafficCompetence("DEP", "AIR"),
+                    DpsRoleTrafficCompetence("INC", "AIR"),
+                    DpsRoleTrafficCompetence("TXT", "AIR"),
+                    DpsRoleTrafficCompetence("DES", "AIR"),
+                    DpsRoleTrafficCompetence("ENQ", "N/A"),
+                    DpsRoleTrafficCompetence("ENT", "AIR"),
+                    DpsRoleTrafficCompetence("EXC", "N/A"),
+                    DpsRoleTrafficCompetence("EXP", "AIR"),
+                    DpsRoleTrafficCompetence("EXT", "AIR"),
+                    DpsRoleTrafficCompetence("REC", "N/A"),
+                    DpsRoleTrafficCompetence("REG", "N/A"),
+                    DpsRoleTrafficCompetence("TRA", "AIR"),
+                    DpsRoleTrafficCompetence("EIN", "AIR"),
+                    DpsRoleTrafficCompetence("PLA", "N/A"),
+                    DpsRoleTrafficCompetence("DIS", "N/A"),
+                    DpsRoleTrafficCompetence("RFC", "N/A"),
+                    DpsRoleTrafficCompetence("IPR", "N/A")
+                  )
                 )
               )
             )
           )
-        ))
+        )
       )
     )
   )
@@ -339,42 +344,44 @@ class DpsConnectorSpec
             "Dalsagervej 7"
           )
         ),
-        List(DpsCustomsOfficeTimetable(
-          "1",
-          None,
-          "20180101",
-          "20991231",
-          List(
-            DpsTimetableLine(
-              Some("1"),
-              Some("0800"),
-              Some("1600"),
-              Some("5"),
-              None,
-              None,
-              Some(
-                List(
-                  DpsRoleTrafficCompetence("EXL", "P"),
-                  DpsRoleTrafficCompetence("EXL", "R"),
-                  DpsRoleTrafficCompetence("EXP", "P"),
-                  DpsRoleTrafficCompetence("EXP", "R"),
-                  DpsRoleTrafficCompetence("EXT", "P"),
-                  DpsRoleTrafficCompetence("EXT", "R"),
-                  DpsRoleTrafficCompetence("PLA", "R"),
-                  DpsRoleTrafficCompetence("RFC", "R"),
-                  DpsRoleTrafficCompetence("DIS", "N/A"),
-                  DpsRoleTrafficCompetence("IPR", "N/A"),
-                  DpsRoleTrafficCompetence("ENQ", "P"),
-                  DpsRoleTrafficCompetence("ENQ", "R"),
-                  DpsRoleTrafficCompetence("ENQ", "N/A"),
-                  DpsRoleTrafficCompetence("REC", "P"),
-                  DpsRoleTrafficCompetence("REC", "R"),
-                  DpsRoleTrafficCompetence("REC", "N/A")
+        List(
+          DpsCustomsOfficeTimetable(
+            "1",
+            None,
+            "20180101",
+            "20991231",
+            List(
+              DpsTimetableLine(
+                Some("1"),
+                Some("0800"),
+                Some("1600"),
+                Some("5"),
+                None,
+                None,
+                Some(
+                  List(
+                    DpsRoleTrafficCompetence("EXL", "P"),
+                    DpsRoleTrafficCompetence("EXL", "R"),
+                    DpsRoleTrafficCompetence("EXP", "P"),
+                    DpsRoleTrafficCompetence("EXP", "R"),
+                    DpsRoleTrafficCompetence("EXT", "P"),
+                    DpsRoleTrafficCompetence("EXT", "R"),
+                    DpsRoleTrafficCompetence("PLA", "R"),
+                    DpsRoleTrafficCompetence("RFC", "R"),
+                    DpsRoleTrafficCompetence("DIS", "N/A"),
+                    DpsRoleTrafficCompetence("IPR", "N/A"),
+                    DpsRoleTrafficCompetence("ENQ", "P"),
+                    DpsRoleTrafficCompetence("ENQ", "R"),
+                    DpsRoleTrafficCompetence("ENQ", "N/A"),
+                    DpsRoleTrafficCompetence("REC", "P"),
+                    DpsRoleTrafficCompetence("REC", "R"),
+                    DpsRoleTrafficCompetence("REC", "N/A")
+                  )
                 )
               )
             )
           )
-        ))
+        )
       ),
       DpsCustomsOffice(
         RDEntryStatus("valid", "22-03-2025"),
@@ -411,40 +418,42 @@ class DpsConnectorSpec
             "Prima Strada, 5"
           )
         ),
-        List(DpsCustomsOfficeTimetable(
-          "1",
-          Some("ALL YEAR"),
-          "20240101",
-          "99991231",
-          List(
-            DpsTimetableLine(
-              Some("1"),
-              Some("0800"),
-              Some("1800"),
-              Some("5"),
-              None,
-              None,
-              Some(
-                List(
-                  DpsRoleTrafficCompetence("DEP", "R"),
-                  DpsRoleTrafficCompetence("INC", "R"),
-                  DpsRoleTrafficCompetence("TRA", "R"),
-                  DpsRoleTrafficCompetence("EXP", "R"),
-                  DpsRoleTrafficCompetence("EIN", "R"),
-                  DpsRoleTrafficCompetence("ENT", "R"),
-                  DpsRoleTrafficCompetence("EXC", "R"),
-                  DpsRoleTrafficCompetence("DES", "R"),
-                  DpsRoleTrafficCompetence("GUA", "R"),
-                  DpsRoleTrafficCompetence("EXT", "R"),
-                  DpsRoleTrafficCompetence("REG", "R"),
-                  DpsRoleTrafficCompetence("REC", "R"),
-                  DpsRoleTrafficCompetence("IPR", "N/A"),
-                  DpsRoleTrafficCompetence("ENQ", "N/A")
+        List(
+          DpsCustomsOfficeTimetable(
+            "1",
+            Some("ALL YEAR"),
+            "20240101",
+            "99991231",
+            List(
+              DpsTimetableLine(
+                Some("1"),
+                Some("0800"),
+                Some("1800"),
+                Some("5"),
+                None,
+                None,
+                Some(
+                  List(
+                    DpsRoleTrafficCompetence("DEP", "R"),
+                    DpsRoleTrafficCompetence("INC", "R"),
+                    DpsRoleTrafficCompetence("TRA", "R"),
+                    DpsRoleTrafficCompetence("EXP", "R"),
+                    DpsRoleTrafficCompetence("EIN", "R"),
+                    DpsRoleTrafficCompetence("ENT", "R"),
+                    DpsRoleTrafficCompetence("EXC", "R"),
+                    DpsRoleTrafficCompetence("DES", "R"),
+                    DpsRoleTrafficCompetence("GUA", "R"),
+                    DpsRoleTrafficCompetence("EXT", "R"),
+                    DpsRoleTrafficCompetence("REG", "R"),
+                    DpsRoleTrafficCompetence("REC", "R"),
+                    DpsRoleTrafficCompetence("IPR", "N/A"),
+                    DpsRoleTrafficCompetence("ENQ", "N/A")
+                  )
                 )
               )
             )
           )
-        ))
+        )
       )
     )
   )
@@ -818,7 +827,8 @@ class DpsConnectorSpec
         )
     )
 
-    connector.fetchCustomsOfficeLists(phase, domain)
+    connector
+      .fetchCustomsOfficeLists(phase, domain)
       .runWith(Sink.collection[CustomsOfficeListResponse, List[CustomsOfficeListResponse]])
       .map(_ mustBe List(customsOfficeListPage1, customsOfficeListPage2))
   }
@@ -836,7 +846,8 @@ class DpsConnectorSpec
     )
 
     recoverToSucceededIf[UpstreamErrorResponse] {
-      connector.fetchCustomsOfficeLists(phase, domain)
+      connector
+        .fetchCustomsOfficeLists(phase, domain)
         .runWith(Sink.collection[CustomsOfficeListResponse, List[CustomsOfficeListResponse]])
     }
   }
@@ -854,7 +865,8 @@ class DpsConnectorSpec
     )
 
     recoverToSucceededIf[UpstreamErrorResponse] {
-      connector.fetchCustomsOfficeLists(phase, domain)
+      connector
+        .fetchCustomsOfficeLists(phase, domain)
         .runWith(Sink.collection[CustomsOfficeListResponse, List[CustomsOfficeListResponse]])
     }
   }
@@ -885,7 +897,8 @@ class DpsConnectorSpec
     )
 
     recoverToSucceededIf[UpstreamErrorResponse] {
-      connector.fetchCustomsOfficeLists(phase, domain)
+      connector
+        .fetchCustomsOfficeLists(phase, domain)
         .runWith(Sink.collection[CustomsOfficeListResponse, List[CustomsOfficeListResponse]])
     }
   }
@@ -918,7 +931,8 @@ class DpsConnectorSpec
     )
 
     recoverToSucceededIf[UpstreamErrorResponse] {
-      connector.fetchCustomsOfficeLists(phase, domain)
+      connector
+        .fetchCustomsOfficeLists(phase, domain)
         .runWith(Sink.collection[CustomsOfficeListResponse, List[CustomsOfficeListResponse]])
     }
   }
@@ -959,7 +973,8 @@ class DpsConnectorSpec
     )
 
     recoverToSucceededIf[UpstreamErrorResponse] {
-      connector.fetchCustomsOfficeLists(phase, domain)
+      connector
+        .fetchCustomsOfficeLists(phase, domain)
         .runWith(Sink.collection[CustomsOfficeListResponse, List[CustomsOfficeListResponse]])
     }
   }
@@ -1027,7 +1042,8 @@ class DpsConnectorSpec
         )
     )
 
-    connector.fetchCustomsOfficeLists(phase, domain)
+    connector
+      .fetchCustomsOfficeLists(phase, domain)
       .runWith(Sink.collection[CustomsOfficeListResponse, List[CustomsOfficeListResponse]])
       .map(_ mustBe List(customsOfficeListPage1, customsOfficeListPage2))
   }

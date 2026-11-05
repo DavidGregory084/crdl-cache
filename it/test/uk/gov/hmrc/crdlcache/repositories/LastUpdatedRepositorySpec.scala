@@ -22,7 +22,7 @@ import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.must.Matchers
 import org.scalatest.{Assertion, OptionValues}
 import uk.gov.hmrc.crdlcache.models.CodeListCode.{BC08, BC66, CL251}
-import uk.gov.hmrc.crdlcache.models.LastUpdated
+import uk.gov.hmrc.crdlcache.models.{CodeListCode, Domain, LastUpdated, Phase}
 import uk.gov.hmrc.mongo.test.{
   CleanMongoCollectionSupport,
   IndexedMongoQueriesSupport,
@@ -75,9 +75,9 @@ class LastUpdatedRepositorySpec
     session =>
       val inputInstant = clock.instant()
       for {
-        _           <- repository.setLastUpdated(session, CL251, 1, Some("P6"), Some("NCTS"), inputInstant)
+        _           <- repository.setLastUpdated(session, CL251, 1, Some(Phase.NCTS6), Some(Domain.NCTS), inputInstant)
         lastUpdated <- repository.fetchLastUpdated(CL251, None, None)
-      } yield lastUpdated mustBe Some(LastUpdated(CL251, 1, Some("P6"), Some("NCTS"), inputInstant))
+      } yield lastUpdated mustBe Some(LastUpdated(CL251, 1, Some(Phase.NCTS6), Some(Domain.NCTS), inputInstant))
   }
 
   it should "only upsert the value for the specified codelist" in withSession { session =>
@@ -144,8 +144,8 @@ class LastUpdatedRepositorySpec
       for {
         _           <- repository.setLastUpdated(session, BC08, 1, None, None, instant)
         _           <- repository.setLastUpdated(session, BC66, 1, None, None, instant)
-        _           <- repository.setLastUpdated(session, CL251, 1, Some("P6"), Some("NCTS"), instant)
-        lastUpdated <- repository.fetchAllLastUpdatedPaged(1, 10, codeListCode = Some("bc"))
+        _           <- repository.setLastUpdated(session, CL251, 1, Some(Phase.NCTS6), Some(Domain.NCTS), instant)
+        lastUpdated <- repository.fetchAllLastUpdatedPaged(1, 10, codeListCode = Some(CodeListCode("bc")))
       } yield {
         lastUpdated mustBe List(LastUpdated(BC08, 1, None, None, instant), LastUpdated(BC66, 1, None, None, instant))
       }
@@ -156,10 +156,10 @@ class LastUpdatedRepositorySpec
       val instant = clock.instant()
       for {
         _           <- repository.setLastUpdated(session, BC08, 1, None, None, instant)
-        _           <- repository.setLastUpdated(session, CL251, 1, Some("P6"), Some("NCTS"), instant)
-        lastUpdated <- repository.fetchAllLastUpdatedPaged(1, 10, phase = Some("P6"))
+        _           <- repository.setLastUpdated(session, CL251, 1, Some(Phase.NCTS6), Some(Domain.NCTS), instant)
+        lastUpdated <- repository.fetchAllLastUpdatedPaged(1, 10, phase = Some(Phase.NCTS6))
       } yield {
-        lastUpdated mustBe List(LastUpdated(CL251, 1, Some("P6"), Some("NCTS"), instant))
+        lastUpdated mustBe List(LastUpdated(CL251, 1, Some(Phase.NCTS6), Some(Domain.NCTS), instant))
       }
   }
 
@@ -168,10 +168,10 @@ class LastUpdatedRepositorySpec
       val instant = clock.instant()
       for {
         _           <- repository.setLastUpdated(session, BC08, 1, None, None, instant)
-        _           <- repository.setLastUpdated(session, CL251, 1, Some("P6"), Some("NCTS"), instant)
-        lastUpdated <- repository.fetchAllLastUpdatedPaged(1, 10, domain = Some("NCTS"))
+        _           <- repository.setLastUpdated(session, CL251, 1, Some(Phase.NCTS6), Some(Domain.NCTS), instant)
+        lastUpdated <- repository.fetchAllLastUpdatedPaged(1, 10, domain = Some(Domain.NCTS))
       } yield {
-        lastUpdated mustBe List(LastUpdated(CL251, 1, Some("P6"), Some("NCTS"), instant))
+        lastUpdated mustBe List(LastUpdated(CL251, 1, Some(Phase.NCTS6), Some(Domain.NCTS), instant))
       }
   }
 
@@ -205,8 +205,8 @@ class LastUpdatedRepositorySpec
       for {
         _     <- repository.setLastUpdated(session, BC08, 1, None, None, instant)
         _     <- repository.setLastUpdated(session, BC66, 1, None, None, instant)
-        _     <- repository.setLastUpdated(session, CL251, 1, Some("P6"), Some("NCTS"), instant)
-        count <- repository.codeListCount(codeListCode = Some("BC"))
+        _     <- repository.setLastUpdated(session, CL251, 1, Some(Phase.NCTS6), Some(Domain.NCTS), instant)
+        count <- repository.codeListCount(codeListCode = Some(CodeListCode("BC")))
       } yield {
         count mustBe 2L
       }
@@ -217,8 +217,8 @@ class LastUpdatedRepositorySpec
       val instant = clock.instant()
       for {
         _     <- repository.setLastUpdated(session, BC08, 1, None, None, instant)
-        _     <- repository.setLastUpdated(session, CL251, 1, Some("P6"), Some("NCTS"), instant)
-        count <- repository.codeListCount(phase = Some("P6"))
+        _     <- repository.setLastUpdated(session, CL251, 1, Some(Phase.NCTS6), Some(Domain.NCTS), instant)
+        count <- repository.codeListCount(phase = Some(Phase.NCTS6))
       } yield {
         count mustBe 1L
       }
@@ -229,8 +229,8 @@ class LastUpdatedRepositorySpec
       val instant = clock.instant()
       for {
         _     <- repository.setLastUpdated(session, BC08, 1, None, None, instant)
-        _     <- repository.setLastUpdated(session, CL251, 1, Some("P6"), Some("NCTS"), instant)
-        count <- repository.codeListCount(domain = Some("NCTS"))
+        _     <- repository.setLastUpdated(session, CL251, 1, Some(Phase.NCTS6), Some(Domain.NCTS), instant)
+        count <- repository.codeListCount(domain = Some(Domain.NCTS))
       } yield {
         count mustBe 1L
       }
@@ -241,7 +241,7 @@ class LastUpdatedRepositorySpec
       val instant = clock.instant()
       for {
         _     <- repository.setLastUpdated(session, BC08, 1, None, None, instant)
-        count <- repository.codeListCount(codeListCode = Some("XYZ"))
+        count <- repository.codeListCount(codeListCode = Some(CodeListCode("XYZ")))
       } yield {
         count mustBe 0L
       }

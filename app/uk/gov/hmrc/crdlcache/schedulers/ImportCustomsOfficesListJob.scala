@@ -17,8 +17,8 @@
 package uk.gov.hmrc.crdlcache.schedulers
 
 import org.apache.pekko.actor.ActorSystem
-import org.apache.pekko.stream.{ActorAttributes, DelayOverflowStrategy, Supervision}
 import org.apache.pekko.stream.scaladsl.Sink
+import org.apache.pekko.stream.{ActorAttributes, DelayOverflowStrategy, Supervision}
 import org.mongodb.scala.ClientSession
 import org.quartz.{DisallowConcurrentExecution, Job, JobExecutionContext}
 import play.api.Logging
@@ -28,17 +28,16 @@ import uk.gov.hmrc.crdlcache.models.CustomsOfficeListsInstruction.{
   RecordMissingCustomsOffice,
   UpsertCustomsOffice
 }
-import uk.gov.hmrc.crdlcache.models.{CustomsOffice, CustomsOfficeListsInstruction}
+import uk.gov.hmrc.crdlcache.models.{CustomsOffice, CustomsOfficeListsInstruction, Domain, Phase}
 import uk.gov.hmrc.crdlcache.repositories.CustomsOfficeListsRepository
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.lock.{LockService, MongoLockRepository}
 import uk.gov.hmrc.mongo.transaction.{TransactionConfiguration, Transactions}
 
-import java.time.{Clock, LocalDate, ZoneOffset}
+import java.time.{Clock, Instant, LocalDate, ZoneOffset}
 import javax.inject.Inject
-import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.concurrent.duration.*
-import java.time.Instant
+import scala.concurrent.{Await, ExecutionContext, Future}
 
 @DisallowConcurrentExecution
 class ImportCustomsOfficesListJob @Inject() (
@@ -54,8 +53,8 @@ class ImportCustomsOfficesListJob @Inject() (
   with Logging
   with Transactions {
 
-  protected val phase: Option[String]  = appConfig.importOfficesJobPhase
-  protected val domain: Option[String] = appConfig.importOfficesJobDomain
+  protected val phase: Option[Phase]   = appConfig.importOfficesJobPhase
+  protected val domain: Option[Domain] = appConfig.importOfficesJobDomain
 
   given TransactionConfiguration = TransactionConfiguration.strict
 
@@ -65,8 +64,8 @@ class ImportCustomsOfficesListJob @Inject() (
   private[schedulers] def processCustomsOffices(
     session: ClientSession,
     customsOffices: List[CustomsOffice],
-    phase: Option[String] = None,
-    domain: Option[String] = None
+    phase: Option[Phase] = None,
+    domain: Option[Domain] = None
   ): Future[List[CustomsOfficeListsInstruction]] = {
     logger.info("Importing customs office lists")
     (phase, domain) match {
@@ -120,8 +119,8 @@ class ImportCustomsOfficesListJob @Inject() (
     val job = for {
       preIngestOfficeCount <- customsOfficeListsRepository.customsOfficesCount(
         Instant.now(),
-        domain = Some("NCTS"),
-        phase = Some("P6")
+        domain = Some(Domain.NCTS),
+        phase = Some(Phase.NCTS6)
       )
       _ = logger.warn(s"Number of NCTS P6 Customs Offices pre-ingest: ${preIngestOfficeCount}")
 

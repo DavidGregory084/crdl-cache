@@ -24,9 +24,9 @@ import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.must.Matchers
 import org.scalatest.{Assertion, OptionValues}
 import play.api.libs.json.{JsNull, JsString, JsTrue, Json}
-import uk.gov.hmrc.crdlcache.models.CodeListCode.{BC08, BC36, BC66}
-import uk.gov.hmrc.crdlcache.models.{CodeListEntry, CodeListKey}
+import uk.gov.hmrc.crdlcache.models.CodeListCode.{BC08, BC36, BC66, code}
 import uk.gov.hmrc.crdlcache.models.Instruction.{InvalidateEntry, RecordMissingEntry, UpsertEntry}
+import uk.gov.hmrc.crdlcache.models.{CodeListEntry, CodeListKey, Domain, Phase}
 import uk.gov.hmrc.mongo.test.{
   CleanMongoCollectionSupport,
   IndexedMongoQueriesSupport,
@@ -230,8 +230,8 @@ class StandardCodeListsRepositorySpec
         "phase" -> "P6",
         "domain" -> "NCTS"
       ),
-      Some("P6"),
-      Some("NCTS")
+      Some(Phase.NCTS6),
+      Some(Domain.NCTS)
     ),
     CodeListEntry(
       BC08,
@@ -245,8 +245,8 @@ class StandardCodeListsRepositorySpec
         "phase" -> "P6",
         "domain" -> "NCTS"
       ),
-      Some("P6"),
-      Some("NCTS")
+      Some(Phase.NCTS6),
+      Some(Domain.NCTS)
     ),
     CodeListEntry(
       BC08,
@@ -260,8 +260,8 @@ class StandardCodeListsRepositorySpec
         "phase" -> "P5",
         "domain" -> "NCTS"
       ),
-      Some("P5"),
-      Some("NCTS")
+      Some(Phase.NCTS5),
+      Some(Domain.NCTS)
     )
   )
 
@@ -588,8 +588,8 @@ class StandardCodeListsRepositorySpec
         filterKeys = None,
         filterProperties = None,
         activeAt = Instant.parse("2025-06-05T00:00:00Z"),
-        phase = Some("P6"),
-        domain = Some("NCTS")
+        phase = Some(Phase.NCTS6),
+        domain = Some(Domain.NCTS)
       )
       .map(_ must contain allElementsOf phaseAndDomainEntries.take(2))
   }
@@ -603,8 +603,8 @@ class StandardCodeListsRepositorySpec
         filterKeys = None,
         filterProperties = None,
         activeAt = Instant.parse("2025-06-05T00:00:00Z"),
-        phase = Some("P5"),
-        domain = Some("NCTS")
+        phase = Some(Phase.NCTS5),
+        domain = Some(Domain.NCTS)
       )
       .map(_ must contain only phaseAndDomainEntries.last)
   }
@@ -652,8 +652,8 @@ class StandardCodeListsRepositorySpec
         filterKeys = Some(Set("T1", "T2")),
         filterProperties = None,
         activeAt = Instant.parse("2025-06-05T00:00:00Z"),
-        phase = Some("P6"),
-        domain = Some("NCTS")
+        phase = Some(Phase.NCTS6),
+        domain = Some(Domain.NCTS)
       )
       .map(_ must contain allElementsOf phaseAndDomainEntries.take(2))
   }
@@ -667,8 +667,8 @@ class StandardCodeListsRepositorySpec
         filterKeys = None,
         filterProperties = Some(Map("state" -> JsString("valid"))),
         activeAt = Instant.parse("2025-06-05T00:00:00Z"),
-        phase = Some("P6"),
-        domain = Some("NCTS")
+        phase = Some(Phase.NCTS6),
+        domain = Some(Domain.NCTS)
       )
       .map(_ must contain allElementsOf phaseAndDomainEntries.take(2))
   }
@@ -682,8 +682,8 @@ class StandardCodeListsRepositorySpec
         filterKeys = None,
         filterProperties = None,
         activeAt = Instant.parse("2025-06-05T00:00:00Z"),
-        phase = Some("P99"),
-        domain = Some("UNKNOWN")
+        phase = Some(Phase("P99")),
+        domain = Some(Domain("UNKNOWN"))
       )
       .map(_ mustBe empty)
   }
