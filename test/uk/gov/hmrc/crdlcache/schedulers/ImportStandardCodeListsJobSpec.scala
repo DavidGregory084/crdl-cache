@@ -35,11 +35,10 @@ import uk.gov.hmrc.crdlcache.models.CodeListCode.{BC08, BC36, BC66}
 import uk.gov.hmrc.crdlcache.models.CodeListOrigin.SEED
 import uk.gov.hmrc.crdlcache.models.Instruction.{InvalidateEntry, RecordMissingEntry, UpsertEntry}
 import uk.gov.hmrc.crdlcache.models.Operation.Update
-import uk.gov.hmrc.crdlcache.models.dps.codelist.{CodeListResponse, DataItem, LanguageDescription}
 import uk.gov.hmrc.crdlcache.models.dps.codelist
+import uk.gov.hmrc.crdlcache.models.dps.codelist.*
 import uk.gov.hmrc.crdlcache.models.errors.MongoError
 import uk.gov.hmrc.crdlcache.repositories.{LastUpdatedRepository, StandardCodeListsRepository}
-import uk.gov.hmrc.crdlcache.models.dps.codelist.{DpsCodeListEntry, DpsCodeListSnapshot}
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.lock.{Lock, MongoLockRepository}
 
@@ -752,6 +751,7 @@ class ImportStandardCodeListsJobSpec
               Instant.parse("2023-11-02T00:00:00Z"),
               Some(Instant.parse("2023-10-31T00:00:00Z")),
               Some(Update),
+              None,
               Json.obj(
                 "actionIdentification" -> "1093"
               ),
@@ -764,6 +764,7 @@ class ImportStandardCodeListsJobSpec
               Instant.parse("2023-11-02T00:00:00Z"),
               Some(Instant.parse("2023-11-01T00:00:00Z")),
               Some(Update),
+              None,
               Json.obj(
                 "actionIdentification" -> "1096"
               ),
@@ -776,6 +777,7 @@ class ImportStandardCodeListsJobSpec
               Instant.parse("2023-11-02T00:00:00Z"),
               Some(Instant.parse("2023-11-01T00:00:00Z")),
               Some(Update),
+              None,
               Json.obj(
                 "actionIdentification" -> "1099"
               ),

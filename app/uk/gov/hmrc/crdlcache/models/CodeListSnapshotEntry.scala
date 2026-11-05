@@ -27,12 +27,7 @@ import uk.gov.hmrc.crdlcache.config.{
 import uk.gov.hmrc.crdlcache.models.CodeListCode.code
 import uk.gov.hmrc.crdlcache.models.CodeListOrigin.{CSRD2, SEED}
 import uk.gov.hmrc.crdlcache.models.dps.codelist.DpsCodeListEntry
-import uk.gov.hmrc.crdlcache.models.errors.ImportError.{
-  LanguageDescriptionMissing,
-  RequiredDataItemMissing,
-  RequiredDataItemsMissing,
-  UnknownOperation
-}
+import uk.gov.hmrc.crdlcache.models.errors.ImportError.*
 import uk.gov.hmrc.crdlcache.utils.ParserUtils.parseDateToInstant
 
 import java.time.Instant
@@ -44,6 +39,7 @@ case class CodeListSnapshotEntry(
   activeFrom: Instant,
   updatedAt: Option[Instant],
   operation: Option[Operation],
+  state: Option[State],
   properties: JsObject,
   phase: Option[Phase],
   domain: Option[Domain]
@@ -56,6 +52,9 @@ object CodeListSnapshotEntry {
     SEED.activeDateProperty,
     SEED.modificationDateProperty.get,
     SEED.operationProperty.get,
+    // TODO: Add this if we can remove state=valid filtering from customs-reference-data.
+    //       It will remove this property from the codelist entry because validity is handled by the import job.
+    // CSRD2.stateProperty.get,
     CSRD2.activeDateProperty
   )
 
@@ -102,6 +101,11 @@ object CodeListSnapshotEntry {
       .flatMap(_.dataitem_value)
       .map { value => Operation.fromString(value).getOrElse(throw UnknownOperation(value)) }
 
+    val state = config.origin.stateProperty
+      .flatMap(dpsEntry.getProperty)
+      .flatMap(_.dataitem_value)
+      .map { value => State.fromString(value).getOrElse(throw UnknownState(value)) }
+
     val usedProperties =
       config match {
         case _: CodeListConfig | _: PhaseAndDomainListConfig =>
@@ -132,6 +136,7 @@ object CodeListSnapshotEntry {
       activeFrom,
       updatedAt,
       operation,
+      state,
       builder.result(),
       phase,
       domain
