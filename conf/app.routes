@@ -7,7 +7,7 @@ GET        /offices             uk.gov.hmrc.crdlcache.controllers.CustomsOfficeL
 # Admin endpoints to support crdl-cache-admin-frontend
 
 GET     /admin/offices/summaries            uk.gov.hmrc.crdlcache.controllers.CustomsOfficeListsController.fetchCustomsOfficeListSummaries(pageNum: Int, pageSize: Int, activeAt: Option[Instant], referenceNumber: Option[String], countryCode: Option[String], officeName: Option[String], phase: Option[Phase], domain: Option[Domain])
-GET     /admin/offices/:referenceNumber     uk.gov.hmrc.crdlcache.controllers.CustomsOfficeListsController.fetchCustomsOfficeDetail(referenceNumber: String, activeAt: Option[Instant])
+GET     /admin/offices/:referenceNumber     uk.gov.hmrc.crdlcache.controllers.CustomsOfficeListsController.fetchCustomsOfficeDetail(referenceNumber: String, activeAt: Option[Instant], phase: Option[Phase] ?= None, domain: Option[Domain] ?= None)
 GET     /admin/lists                        uk.gov.hmrc.crdlcache.controllers.CodeListsController.fetchCodeListVersionsPaged(pageNum: Int, pageSize: Int, codeListCode: Option[String], phase: Option[Phase], domain: Option[Domain])
 GET     /admin/lists/:code/entries          uk.gov.hmrc.crdlcache.controllers.CodeListsController.fetchCodeListEntriesPaginated(code: String, pageNum: Int, pageSize: Int, activeAt: Option[Instant], key: Option[String], value: Option[String])
 GET     /admin/snapshot/:code               uk.gov.hmrc.crdlcache.controllers.CodeListsController.getSnapshot(code: String, phase: Option[Phase] ?= None, domain: Option[Domain] ?= None)

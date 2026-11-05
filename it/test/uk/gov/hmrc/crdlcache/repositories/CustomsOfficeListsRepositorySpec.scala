@@ -620,10 +620,14 @@ class CustomsOfficeListsRepositorySpec
 
   // Test date for roleDate filtering: 2026-01-01
   // Test role: TRA
-  private val testDate = LocalDate.parse("20260101", dateFormat)
+  private val testDate     = LocalDate.parse("20260101", dateFormat)
   private val testActiveAt = Instant.parse("2025-06-05T00:00:00Z")
 
-  private def makeTimetable(seasonStart: String, seasonEnd: String, roles: List[String]): CustomsOfficeTimetable =
+  private def makeTimetable(
+    seasonStart: String,
+    seasonEnd: String,
+    roles: List[String]
+  ): CustomsOfficeTimetable =
     CustomsOfficeTimetable(
       1,
       Some("SEASON"),
@@ -735,12 +739,16 @@ class CustomsOfficeListsRepositorySpec
   "CustomsOfficeListsRepository.fetchCustomsOfficeReferenceNumbers" should "return active offices present in the database" in withCustomsOfficeEntries(
     customsOffices
   ) { session =>
-    repository.fetchCustomsOfficeReferenceNumbers(session).map(_ must contain("DK003102"))
+    repository
+      .fetchCustomsOfficeReferenceNumbers(session, None, None)
+      .map(_ must contain("DK003102"))
   }
 
   it should "not return entries that are invalidated" in withCustomsOfficeEntries(customsOffices) {
     session =>
-      repository.fetchCustomsOfficeReferenceNumbers(session).map(_ mustNot contain("IT314102"))
+      repository
+        .fetchCustomsOfficeReferenceNumbers(session, None, None)
+        .map(_ mustNot contain("IT314102"))
   }
 
   "CustomsOfficeListsRepository.executeInstructions" should "invalidate missing entries" in withCustomsOfficeEntries(
@@ -749,10 +757,19 @@ class CustomsOfficeListsRepositorySpec
     for {
       _ <- repository.executeInstructions(
         session,
-        List(RecordMissingCustomsOffice("DK003102", Instant.parse("2025-05-22T00:00:00Z")))
+        List(
+          RecordMissingCustomsOffice("DK003102", None, None, Instant.parse("2025-05-22T00:00:00Z"))
+        )
       )
       office <- repository.collection
-        .find(session, Filters.equal("referenceNumber", "DK003102"))
+        .find(
+          session,
+          Filters.and(
+            Filters.exists("domain", false),
+            Filters.exists("phase", false),
+            Filters.equal("referenceNumber", "DK003102")
+          )
+        )
         .toFuture()
     } yield office mustBe Seq(DK003102.copy(activeTo = Some(Instant.parse("2025-05-22T00:00:00Z"))))
   }
@@ -763,10 +780,17 @@ class CustomsOfficeListsRepositorySpec
     for {
       _ <- repository.executeInstructions(
         session,
-        List(RecordMissingCustomsOffice("DK003102", DK003102.activeFrom))
+        List(RecordMissingCustomsOffice("DK003102", None, None, DK003102.activeFrom))
       )
       office <- repository.collection
-        .find(session, Filters.equal("referenceNumber", "DK003102"))
+        .find(
+          session,
+          Filters.and(
+            Filters.exists("domain", false),
+            Filters.exists("phase", false),
+            Filters.equal("referenceNumber", "DK003102")
+          )
+        )
         .toFuture()
     } yield office mustBe Seq(DK003102.copy(activeTo = Some(DK003102.activeFrom)))
   }
@@ -787,7 +811,14 @@ class CustomsOfficeListsRepositorySpec
         )
       )
       offices <- repository.collection
-        .find(session, Filters.equal("referenceNumber", "DK003102"))
+        .find(
+          session,
+          Filters.and(
+            Filters.exists("domain", false),
+            Filters.exists("phase", false),
+            Filters.equal("referenceNumber", "DK003102")
+          )
+        )
         .sort(Sorts.ascending("activeFrom"))
         .toFuture()
     } yield offices mustBe Seq(
@@ -808,7 +839,14 @@ class CustomsOfficeListsRepositorySpec
         List(UpsertCustomsOffice(newOffice), UpsertCustomsOffice(postDatedOffice))
       )
       offices <- repository.collection
-        .find(session, Filters.equal("referenceNumber", "IT223101"))
+        .find(
+          session,
+          Filters.and(
+            Filters.exists("domain", false),
+            Filters.exists("phase", false),
+            Filters.equal("referenceNumber", "IT223101")
+          )
+        )
         .toFuture()
     } yield offices mustBe Seq(
       newOffice.copy(activeTo = Some(Instant.parse("2026-05-01T00:00:00Z"))),
@@ -831,7 +869,14 @@ class CustomsOfficeListsRepositorySpec
         )
       )
       office <- repository.collection
-        .find(session, Filters.equal("referenceNumber", "DK003102"))
+        .find(
+          session,
+          Filters.and(
+            Filters.exists("domain", false),
+            Filters.exists("phase", false),
+            Filters.equal("referenceNumber", "DK003102")
+          )
+        )
         .toFuture()
     } yield office mustBe Seq(
       DK003102.copy(
@@ -852,7 +897,12 @@ class CustomsOfficeListsRepositorySpec
                 emailAddress = Some("newEmail@test")
               )
             ),
-            RecordMissingCustomsOffice("DK003102", Instant.parse("2025-05-22T00:00:00Z")),
+            RecordMissingCustomsOffice(
+              "DK003102",
+              None,
+              None,
+              Instant.parse("2025-05-22T00:00:00Z")
+            ),
             UpsertCustomsOffice(DK003102),
             UpsertCustomsOffice(newOffice)
           )
@@ -1166,8 +1216,10 @@ class CustomsOfficeListsRepositorySpec
   ) { _ =>
     repository
       .fetchCustomsOfficeLists(
-        referenceNumbers = None, countryCodes = None,
-        roles = Some(Set("TRA")), activeAt = testActiveAt,
+        referenceNumbers = None,
+        countryCodes = None,
+        roles = Some(Set("TRA")),
+        activeAt = testActiveAt,
         phase = None,
         domain = None,
         roleDate = Some(testDate)
@@ -1181,8 +1233,10 @@ class CustomsOfficeListsRepositorySpec
   ) { _ =>
     repository
       .fetchCustomsOfficeLists(
-        referenceNumbers = None, countryCodes = None,
-        roles = Some(Set("TRA")), activeAt = testActiveAt,
+        referenceNumbers = None,
+        countryCodes = None,
+        roles = Some(Set("TRA")),
+        activeAt = testActiveAt,
         phase = None,
         domain = None,
         roleDate = Some(testDate)
@@ -1196,8 +1250,10 @@ class CustomsOfficeListsRepositorySpec
   ) { _ =>
     repository
       .fetchCustomsOfficeLists(
-        referenceNumbers = None, countryCodes = None,
-        roles = Some(Set("TRA")), activeAt = testActiveAt,
+        referenceNumbers = None,
+        countryCodes = None,
+        roles = Some(Set("TRA")),
+        activeAt = testActiveAt,
         phase = None,
         domain = None,
         roleDate = Some(testDate)
@@ -1211,8 +1267,10 @@ class CustomsOfficeListsRepositorySpec
   ) { _ =>
     repository
       .fetchCustomsOfficeLists(
-        referenceNumbers = None, countryCodes = None,
-        roles = Some(Set("TRA")), activeAt = testActiveAt,
+        referenceNumbers = None,
+        countryCodes = None,
+        roles = Some(Set("TRA")),
+        activeAt = testActiveAt,
         phase = None,
         domain = None,
         roleDate = Some(testDate)
@@ -1226,8 +1284,10 @@ class CustomsOfficeListsRepositorySpec
   ) { _ =>
     repository
       .fetchCustomsOfficeLists(
-        referenceNumbers = None, countryCodes = None,
-        roles = Some(Set("TRA")), activeAt = testActiveAt,
+        referenceNumbers = None,
+        countryCodes = None,
+        roles = Some(Set("TRA")),
+        activeAt = testActiveAt,
         phase = None,
         domain = None,
         roleDate = Some(testDate)
@@ -1241,8 +1301,10 @@ class CustomsOfficeListsRepositorySpec
   ) { _ =>
     repository
       .fetchCustomsOfficeLists(
-        referenceNumbers = None, countryCodes = None,
-        roles = Some(Set("TRA")), activeAt = testActiveAt,
+        referenceNumbers = None,
+        countryCodes = None,
+        roles = Some(Set("TRA")),
+        activeAt = testActiveAt,
         phase = None,
         domain = None,
         roleDate = Some(testDate)
@@ -1256,8 +1318,10 @@ class CustomsOfficeListsRepositorySpec
   ) { _ =>
     repository
       .fetchCustomsOfficeLists(
-        referenceNumbers = None, countryCodes = None,
-        roles = Some(Set("TRA")), activeAt = testActiveAt,
+        referenceNumbers = None,
+        countryCodes = None,
+        roles = Some(Set("TRA")),
+        activeAt = testActiveAt,
         phase = None,
         domain = None,
         roleDate = Some(testDate)
@@ -1271,8 +1335,10 @@ class CustomsOfficeListsRepositorySpec
   ) { _ =>
     repository
       .fetchCustomsOfficeLists(
-        referenceNumbers = None, countryCodes = None,
-        roles = Some(Set("TRA")), activeAt = testActiveAt,
+        referenceNumbers = None,
+        countryCodes = None,
+        roles = Some(Set("TRA")),
+        activeAt = testActiveAt,
         phase = None,
         domain = None,
         roleDate = Some(testDate)
@@ -1286,8 +1352,10 @@ class CustomsOfficeListsRepositorySpec
   ) { _ =>
     repository
       .fetchCustomsOfficeLists(
-        referenceNumbers = None, countryCodes = None,
-        roles = Some(Set("TRA")), activeAt = testActiveAt,
+        referenceNumbers = None,
+        countryCodes = None,
+        roles = Some(Set("TRA")),
+        activeAt = testActiveAt,
         phase = None,
         domain = None,
         roleDate = Some(testDate)
@@ -1301,8 +1369,10 @@ class CustomsOfficeListsRepositorySpec
   ) { _ =>
     repository
       .fetchCustomsOfficeLists(
-        referenceNumbers = None, countryCodes = None,
-        roles = Some(Set("TRA")), activeAt = testActiveAt,
+        referenceNumbers = None,
+        countryCodes = None,
+        roles = Some(Set("TRA")),
+        activeAt = testActiveAt,
         phase = None,
         domain = None,
         roleDate = Some(testDate)
@@ -1316,8 +1386,10 @@ class CustomsOfficeListsRepositorySpec
   ) { _ =>
     repository
       .fetchCustomsOfficeLists(
-        referenceNumbers = None, countryCodes = None,
-        roles = Some(Set("TRA")), activeAt = testActiveAt,
+        referenceNumbers = None,
+        countryCodes = None,
+        roles = Some(Set("TRA")),
+        activeAt = testActiveAt,
         phase = None,
         domain = None,
         roleDate = None
@@ -1337,7 +1409,16 @@ class CustomsOfficeListsRepositorySpec
       customsOffices(0).domain
     )
     repository
-      .fetchCustomsOfficeSummaries(defaultActiveAt, 1, customsOffices.length, None, None, None, None, None)
+      .fetchCustomsOfficeSummaries(
+        defaultActiveAt,
+        1,
+        customsOffices.length,
+        None,
+        None,
+        None,
+        None,
+        None
+      )
       .map { results =>
         {
           results(0) mustBe expectedSummary
@@ -1354,20 +1435,40 @@ class CustomsOfficeListsRepositorySpec
   it should "return filtered count when referenceNumber is supplied" in withCustomsOfficeEntries(
     customsOffices
   ) { _ =>
-    repository.customsOfficesCount(defaultActiveAt, referenceNumber = Some("DK003102"), None, None, None, None).map(_ mustBe 1L)
+    repository
+      .customsOfficesCount(
+        defaultActiveAt,
+        referenceNumber = Some("DK003102"),
+        None,
+        None,
+        None,
+        None
+      )
+      .map(_ mustBe 1L)
   }
 
   it should "return filtered count when countryCode is supplied" in withCustomsOfficeEntries(
     customsOffices
   ) { _ =>
-    repository.customsOfficesCount(defaultActiveAt, countryCode = Some("DK"), None, None, None).map(_ mustBe 4L)
+    repository
+      .customsOfficesCount(defaultActiveAt, countryCode = Some("DK"), None, None, None)
+      .map(_ mustBe 4L)
   }
 
   "CustomsOfficesListsRepository.fetchCustomsOfficeSummaries" should "filter by referenceNumber when supplied" in withCustomsOfficeEntries(
     customsOffices
   ) { _ =>
     repository
-      .fetchCustomsOfficeSummaries(defaultActiveAt, 1, 10, referenceNumber = Some("DK003102"), None, None, None, None)
+      .fetchCustomsOfficeSummaries(
+        defaultActiveAt,
+        1,
+        10,
+        referenceNumber = Some("DK003102"),
+        None,
+        None,
+        None,
+        None
+      )
       .map { results =>
         results must have length 1
         results.head.referenceNumber mustBe "DK003102"
@@ -1378,7 +1479,15 @@ class CustomsOfficeListsRepositorySpec
     customsOffices
   ) { _ =>
     repository
-      .fetchCustomsOfficeSummaries(defaultActiveAt, 1, 10, countryCode = Some("DK"), None, None, None)
+      .fetchCustomsOfficeSummaries(
+        defaultActiveAt,
+        1,
+        10,
+        countryCode = Some("DK"),
+        None,
+        None,
+        None
+      )
       .map { results =>
         results must have length 4
         results.map(_.countryCode).distinct mustBe Seq("DK")
@@ -1389,10 +1498,22 @@ class CustomsOfficeListsRepositorySpec
     customsOffices
   ) { _ =>
     repository
-      .fetchCustomsOfficeSummaries(defaultActiveAt, 1, 10, officeName = Some("hirtshals"), None, None)
+      .fetchCustomsOfficeSummaries(
+        defaultActiveAt,
+        1,
+        10,
+        officeName = Some("hirtshals"),
+        None,
+        None
+      )
       .map { results =>
         results must have length 4
-        results.map(_.referenceNumber) must contain allOf ("DK003102", "DK003103", "DK003104", "DK003105")
+        results.map(_.referenceNumber) must contain allOf (
+          "DK003102",
+          "DK003103",
+          "DK003104",
+          "DK003105"
+        )
       }
   }
 
@@ -1400,7 +1521,14 @@ class CustomsOfficeListsRepositorySpec
     customsOffices
   ) { _ =>
     repository
-      .fetchCustomsOfficeSummaries(defaultActiveAt, 1, 10, officeName = Some("zzz-no-match"), None, None)
+      .fetchCustomsOfficeSummaries(
+        defaultActiveAt,
+        1,
+        10,
+        officeName = Some("zzz-no-match"),
+        None,
+        None
+      )
       .map(_ mustBe empty)
   }
 }

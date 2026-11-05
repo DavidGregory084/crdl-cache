@@ -771,6 +771,8 @@ class CustomsOfficeListsControllerSpec
       .thenReturn(Future.unit)
     when(
       repository.fetchCustomsOfficeByRef(
+        equalTo(None),
+        equalTo(None),
         equalTo(testReferenceNumber),
         equalTo(fixedInstant)
       )
@@ -794,6 +796,8 @@ class CustomsOfficeListsControllerSpec
       .thenReturn(Future.unit)
     when(
       repository.fetchCustomsOfficeByRef(
+        equalTo(None),
+        equalTo(None),
         equalTo(testReferenceNumber),
         equalTo(fixedInstant)
       )
@@ -817,6 +821,8 @@ class CustomsOfficeListsControllerSpec
       .thenReturn(Future.unit)
     when(
       repository.fetchCustomsOfficeByRef(
+        equalTo(None),
+        equalTo(None),
         equalTo(testReferenceNumber),
         equalTo(activeAt)
       )
@@ -865,6 +871,8 @@ class CustomsOfficeListsControllerSpec
       .thenReturn(Future.unit)
     when(
       repository.fetchCustomsOfficeByRef(
+        equalTo(None),
+        equalTo(None),
         equalTo(testReferenceNumber),
         equalTo(fixedInstant)
       )

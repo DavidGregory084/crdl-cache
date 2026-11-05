@@ -19,7 +19,7 @@ package uk.gov.hmrc.crdlcache.schedulers
 import org.apache.pekko.actor.ActorSystem
 import org.apache.pekko.stream.scaladsl.{Sink, Source}
 import org.mockito.ArgumentMatchers.{any, eq as equalTo}
-import org.mockito.Mockito.{never, reset, times, verify, when}
+import org.mockito.Mockito.*
 import org.mongodb.scala.{ClientSession, MongoClient, MongoDatabase, SingleObservable}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
@@ -29,21 +29,12 @@ import org.scalatestplus.mockito.MockitoSugar
 import uk.gov.hmrc.crdlcache.config.AppConfig
 import uk.gov.hmrc.crdlcache.connectors.DpsConnector
 import uk.gov.hmrc.crdlcache.models.CustomsOffice.fromDpsCustomOfficeList
-import uk.gov.hmrc.crdlcache.models.{CustomsOffice, CustomsOfficeListsInstruction}
 import uk.gov.hmrc.crdlcache.models.CustomsOfficeListsInstruction.{
   RecordMissingCustomsOffice,
   UpsertCustomsOffice
 }
-import uk.gov.hmrc.crdlcache.models.dps.col.{
-  CustomsOfficeListResponse,
-  DpsCustomsOffice,
-  DpsCustomsOfficeDetail,
-  DpsCustomsOfficeTimetable,
-  DpsRoleTrafficCompetence,
-  DpsTimetableLine,
-  RDEntryStatus,
-  SpecificNotes
-}
+import uk.gov.hmrc.crdlcache.models.dps.col.*
+import uk.gov.hmrc.crdlcache.models.{CustomsOffice, CustomsOfficeListsInstruction}
 import uk.gov.hmrc.crdlcache.repositories.CustomsOfficeListsRepository
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.lock.{Lock, MongoLockRepository}
@@ -411,7 +402,14 @@ class ImportCustomsOfficesListJobSpec
   "ImportCustomsOfficeListJob.importCustomsOfficeLists" should "import the customs office lists" in {
     val phase  = appConfig.importOfficesJobPhase
     val domain = appConfig.importOfficesJobDomain
-    when(customsOfficeListRepository.fetchCustomsOfficeReferenceNumbers(equalTo(clientSession)))
+
+    when(
+      customsOfficeListRepository.fetchCustomsOfficeReferenceNumbers(
+        equalTo(clientSession),
+        equalTo(phase),
+        equalTo(domain)
+      )
+    )
       .thenReturn(Future.successful(Set.empty[String]))
 
     when(dpsConnector.fetchCustomsOfficeLists(any(), any())(using any()))
@@ -450,7 +448,16 @@ class ImportCustomsOfficesListJobSpec
   }
 
   it should "produce a list of instructions for a customs office list which contains missing entries and updates to existing offices" in {
-    when(customsOfficeListRepository.fetchCustomsOfficeReferenceNumbers(equalTo(clientSession)))
+    val phase  = appConfig.importOfficesJobPhase
+    val domain = appConfig.importOfficesJobDomain
+
+    when(
+      customsOfficeListRepository.fetchCustomsOfficeReferenceNumbers(
+        equalTo(clientSession),
+        equalTo(phase),
+        equalTo(domain)
+      )
+    )
       .thenReturn(Future.successful(Set("IT223100", "IT223101")))
 
     val instructions = customsOfficeListsJob
@@ -460,12 +467,14 @@ class ImportCustomsOfficesListJobSpec
           fromDpsCustomOfficeList(customsOfficeListPage1.elements.last),
           fromDpsCustomOfficeList(customsOfficeListPage2.elements.head),
           fromDpsCustomOfficeList(customsOfficeListPage2.elements.last)
-        )
+        ),
+        phase,
+        domain
       )
       .futureValue
 
     instructions mustBe List(
-      RecordMissingCustomsOffice("IT223100", fixedInstant),
+      RecordMissingCustomsOffice("IT223100", phase, domain, fixedInstant),
       UpsertCustomsOffice(fromDpsCustomOfficeList(customsOfficeListPage1.elements.last)),
       UpsertCustomsOffice(fromDpsCustomOfficeList(customsOfficeListPage2.elements.last)),
       UpsertCustomsOffice(fromDpsCustomOfficeList(customsOfficeListPage2.elements.head))
@@ -473,10 +482,20 @@ class ImportCustomsOfficesListJobSpec
   }
 
   it should "roll back when there is an issue while importing" in {
+    val phase  = appConfig.importOfficesJobPhase
+    val domain = appConfig.importOfficesJobDomain
+
     val invalidCustomsOfficeResponse = CustomsOfficeListResponse(
       List(customsOfficeListPage1.elements.head.copy(nctsentrydate = Some("InvalidDate")))
     )
-    when(customsOfficeListRepository.fetchCustomsOfficeReferenceNumbers(equalTo(clientSession)))
+
+    when(
+      customsOfficeListRepository.fetchCustomsOfficeReferenceNumbers(
+        equalTo(clientSession),
+        equalTo(phase),
+        equalTo(domain)
+      )
+    )
       .thenReturn(Future.successful(Set.empty[String]))
 
     when(dpsConnector.fetchCustomsOfficeLists(any(), any())(using any()))

@@ -74,8 +74,9 @@ class ImportCustomsOfficesListJob @Inject() (
           "Both phase and domain must be provided together, or neither should be provided"
         )
       case _ =>
-        customsOfficeListsRepository.fetchCustomsOfficeReferenceNumbers(session).flatMap {
-          existingReferenceNumbers =>
+        customsOfficeListsRepository
+          .fetchCustomsOfficeReferenceNumbers(session, phase, domain)
+          .flatMap { existingReferenceNumbers =>
             val incomingCustomsOffices   = customsOffices.groupBy(_.referenceNumber)
             val incomingReferenceNumbers = incomingCustomsOffices.keySet
             val mergedReferenceNumbers   = existingReferenceNumbers.union(incomingReferenceNumbers)
@@ -102,6 +103,8 @@ class ImportCustomsOfficesListJob @Inject() (
                   val startOfToday = LocalDate.now(clock).atStartOfDay(ZoneOffset.UTC)
                   instructions += RecordMissingCustomsOffice(
                     referenceNumber,
+                    phase,
+                    domain,
                     startOfToday.toInstant
                   )
                 case (false, None) =>
@@ -111,7 +114,7 @@ class ImportCustomsOfficesListJob @Inject() (
               }
             }
             Future.successful(instructions.result())
-        }
+          }
     }
   }
 
@@ -119,8 +122,8 @@ class ImportCustomsOfficesListJob @Inject() (
     val job = for {
       preIngestOfficeCount <- customsOfficeListsRepository.customsOfficesCount(
         Instant.now(),
-        domain = Some(Domain.NCTS),
-        phase = Some(Phase.NCTS6)
+        domain = domain,
+        phase = phase
       )
       _ = logger.warn(s"Number of NCTS P6 Customs Offices pre-ingest: ${preIngestOfficeCount}")
 
@@ -141,7 +144,7 @@ class ImportCustomsOfficesListJob @Inject() (
         .runWith(Sink.seq)
       _ <- withSessionAndTransaction { session =>
         for {
-          instructions <- processCustomsOffices(session, customOfficeLists.toList)
+          instructions <- processCustomsOffices(session, customOfficeLists.toList, phase, domain)
           _            <- customsOfficeListsRepository.executeInstructions(session, instructions)
         } yield ()
 

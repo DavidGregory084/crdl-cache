@@ -19,9 +19,9 @@ package uk.gov.hmrc.crdlcache.controllers
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import uk.gov.hmrc.crdlcache.controllers.auth.Permissions.ReadCustomsOfficeLists
-import uk.gov.hmrc.crdlcache.models.{Domain, Phase}
 import uk.gov.hmrc.crdlcache.models.formats.HttpFormats
 import uk.gov.hmrc.crdlcache.models.paging.PagedResult
+import uk.gov.hmrc.crdlcache.models.{Domain, Phase}
 import uk.gov.hmrc.crdlcache.repositories.CustomsOfficeListsRepository
 import uk.gov.hmrc.internalauth.client.*
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
@@ -85,10 +85,12 @@ class CustomsOfficeListsController @Inject() (
 
   def fetchCustomsOfficeDetail(
     referenceNumber: String,
-    activeAt: Option[Instant]
+    activeAt: Option[Instant],
+    phase: Option[Phase],
+    domain: Option[Domain],
   ): Action[AnyContent] = auth.authorizedAction(ReadCustomsOfficeLists).async { _ =>
     val resolvedActiveAt = activeAt.getOrElse(clock.instant())
-    customsOfficeListsRepository.fetchCustomsOfficeByRef(referenceNumber, resolvedActiveAt).map {
+    customsOfficeListsRepository.fetchCustomsOfficeByRef(domain, phase, referenceNumber, resolvedActiveAt).map {
       case Some(office) => Ok(Json.toJson(office))
       case None         => NotFound
     }
