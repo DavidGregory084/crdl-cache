@@ -23,33 +23,42 @@ enum CorrespondenceListInstruction {
 
   case InvalidateEntry(codeListEntry: CodeListEntry)
 
-  // case DeleteEntry(codeListEntry: CodeListEntry)
-
   case RecordMissingEntry(
     codeListCode: CodeListCode,
     override val key: String,
     override val value: String,
+    override val phase: Option[Phase],
+    override val domain: Option[Domain],
     removedAt: Instant
   )
 
   def key: String = this match {
-    case CorrespondenceListInstruction.UpsertEntry(codeListEntry)     => codeListEntry.key
-    case CorrespondenceListInstruction.InvalidateEntry(codeListEntry) => codeListEntry.key
-    // case CorrespondenceListInstruction.DeleteEntry(codeListEntry)     => codeListEntry.key
-    case CorrespondenceListInstruction.RecordMissingEntry(_, key, _, _) => key
+    case UpsertEntry(codeListEntry)             => codeListEntry.key
+    case InvalidateEntry(codeListEntry)         => codeListEntry.key
+    case RecordMissingEntry(_, key, _, _, _, _) => key
   }
 
   def value: String = this match {
-    case CorrespondenceListInstruction.UpsertEntry(codeListEntry)     => codeListEntry.value
-    case CorrespondenceListInstruction.InvalidateEntry(codeListEntry) => codeListEntry.value
-    // case Instruction.DeleteEntry(codeListEntry)     => codeListEntry.key
-    case CorrespondenceListInstruction.RecordMissingEntry(_, _, value, _) => value
+    case UpsertEntry(codeListEntry)               => codeListEntry.value
+    case InvalidateEntry(codeListEntry)           => codeListEntry.value
+    case RecordMissingEntry(_, _, value, _, _, _) => value
   }
 
   def activeFrom: Instant = this match {
-    case CorrespondenceListInstruction.UpsertEntry(codeListEntry)     => codeListEntry.activeFrom
-    case CorrespondenceListInstruction.InvalidateEntry(codeListEntry) => codeListEntry.activeFrom
-    // case CorrespondenceListInstruction.DeleteEntry(codeListEntry)     => codeListEntry.activeFrom
-    case CorrespondenceListInstruction.RecordMissingEntry(_, _, _, removedAt) => removedAt
+    case UpsertEntry(codeListEntry)                   => codeListEntry.activeFrom
+    case InvalidateEntry(codeListEntry)               => codeListEntry.activeFrom
+    case RecordMissingEntry(_, _, _,  _, _, removedAt) => removedAt
+  }
+
+  def phase: Option[Phase] = this match {
+    case UpsertEntry(codeListEntry)               => codeListEntry.phase
+    case InvalidateEntry(codeListEntry)           => codeListEntry.phase
+    case RecordMissingEntry(_, _, _, phase, _, _) => phase
+  }
+
+  def domain: Option[Domain] = this match {
+    case UpsertEntry(codeListEntry)                => codeListEntry.domain
+    case InvalidateEntry(codeListEntry)            => codeListEntry.domain
+    case RecordMissingEntry(_, _, _, _, domain, _) => domain
   }
 }

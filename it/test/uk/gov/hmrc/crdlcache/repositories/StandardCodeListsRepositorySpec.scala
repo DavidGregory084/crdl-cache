@@ -315,12 +315,12 @@ class StandardCodeListsRepositorySpec
 
   it should "not return entries that are invalidated" in withCodeListEntries(codelistEntries) {
     session =>
-      repository.fetchEntryKeys(session, BC08).map(_ mustNot contain("IO"))
+      repository.fetchEntryKeys(session, BC08).map(_ mustNot contain(CodeListKey("IO", None, None)))
   }
 
   it should "not return entries from other code lists" in withCodeListEntries(codelistEntries) {
     session =>
-      repository.fetchEntryKeys(session, BC08).map(_ mustNot contain("B"))
+      repository.fetchEntryKeys(session, BC08).map(_ mustNot contain(CodeListKey("B", None, None)))
   }
 
   it should "contain the active code list entry keys" in withCodeListEntries(codelistEntries) {

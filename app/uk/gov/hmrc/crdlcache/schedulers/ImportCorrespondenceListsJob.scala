@@ -43,7 +43,7 @@ class ImportCorrespondenceListsJob @Inject() (
   appConfig: AppConfig,
   clock: Clock
 )(using system: ActorSystem, ec: ExecutionContext)
-  extends ImportCodeListsJob[(String, String), CorrespondenceListInstruction](
+  extends ImportCodeListsJob[CorrespondenceListKey, CorrespondenceListInstruction](
     "import-correspondence-lists",
     mongoComponent,
     lockRepository,
@@ -59,18 +59,18 @@ class ImportCorrespondenceListsJob @Inject() (
   override protected def listConfigs: List[ListConfig] =
     appConfig.correspondenceListConfigs
 
-  override protected def keyOfEntry(entry: CodeListSnapshotEntry): (String, String) =
-    entry.key -> entry.value
+  override protected def keyOfEntry(entry: CodeListSnapshotEntry): CorrespondenceListKey =
+    CorrespondenceListKey(entry.key, entry.value, entry.phase, entry.domain)
 
   override protected def recordMissing(
     codeListCode: CodeListCode,
-    mapping: (String, String)
+    mapping: CorrespondenceListKey
   ): CorrespondenceListInstruction = {
     // DPS provides no snapshot dates:
     // the best we can do with removed entries is to use the start of today as their deactivation date
-    val (key, value) = mapping
+    val CorrespondenceListKey(key, value, phase, domain) = mapping
     val startOfToday = LocalDate.now(clock).atStartOfDay(ZoneOffset.UTC)
-    RecordMissingEntry(codeListCode, key, value, removedAt = startOfToday.toInstant)
+    RecordMissingEntry(codeListCode, key, value, phase, domain, removedAt = startOfToday.toInstant)
   }
 
   protected def processEntry(

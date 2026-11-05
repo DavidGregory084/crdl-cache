@@ -76,7 +76,7 @@ class LastUpdatedRepositorySpec
       val inputInstant = clock.instant()
       for {
         _           <- repository.setLastUpdated(session, CL251, 1, Some(Phase.NCTS6), Some(Domain.NCTS), inputInstant)
-        lastUpdated <- repository.fetchLastUpdated(CL251, None, None)
+        lastUpdated <- repository.fetchLastUpdated(CL251, Some(Phase.NCTS6), Some(Domain.NCTS))
       } yield lastUpdated mustBe Some(LastUpdated(CL251, 1, Some(Phase.NCTS6), Some(Domain.NCTS), inputInstant))
   }
 

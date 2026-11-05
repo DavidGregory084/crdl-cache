@@ -24,8 +24,13 @@ import play.api.Logging
 import play.api.libs.json.*
 import uk.gov.hmrc.crdlcache.models
 import uk.gov.hmrc.crdlcache.models.CodeListCode.code
-import uk.gov.hmrc.crdlcache.models.errors.MongoError
-import uk.gov.hmrc.crdlcache.models.{CodeListCode, CodeListEntry, CorrespondenceListInstruction}
+import uk.gov.hmrc.crdlcache.models.CorrespondenceListInstruction.*
+import uk.gov.hmrc.crdlcache.models.{
+  CodeListCode,
+  CodeListEntry,
+  CorrespondenceListInstruction,
+  CorrespondenceListKey
+}
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.Codecs
 
@@ -36,7 +41,7 @@ import scala.concurrent.{ExecutionContext, Future}
 @Singleton
 class CorrespondenceListsRepository @Inject() (mongoComponent: MongoComponent)(using
   ec: ExecutionContext
-) extends CodeListsRepository[(String, String), CorrespondenceListInstruction](
+) extends CodeListsRepository[CorrespondenceListKey, CorrespondenceListInstruction](
     mongoComponent,
     collectionName = "correspondenceLists",
     extraCodecs =
@@ -44,7 +49,7 @@ class CorrespondenceListsRepository @Inject() (mongoComponent: MongoComponent)(u
         Codecs.playFormatSumCodecs[JsBoolean](Format(Reads.JsBooleanReads, Writes.jsValueWrites)),
     indexes = Seq(
       IndexModel(
-        Indexes.ascending("codeListCode", "key", "value", "activeFrom"),
+        Indexes.ascending("domain", "phase", "codeListCode", "key", "value", "activeFrom"),
         IndexOptions().unique(true)
       )
     )
@@ -54,47 +59,29 @@ class CorrespondenceListsRepository @Inject() (mongoComponent: MongoComponent)(u
   override def activationDate(instruction: CorrespondenceListInstruction): Instant =
     instruction.activeFrom
 
-  override def keyOfEntry(codeListEntry: CodeListEntry): (String, String) =
-    (codeListEntry.key, codeListEntry.value)
+  override def keyOfEntry(codeListEntry: CodeListEntry): CorrespondenceListKey =
+    CorrespondenceListKey(
+      codeListEntry.key,
+      codeListEntry.value,
+      codeListEntry.phase,
+      codeListEntry.domain
+    )
 
-  override def filtersForKey(key: (String, String)): Seq[Bson] =
-    Seq(equal("key", key._1), equal("value", key._2))
-
-  private def deleteCorrespondenceListEntries(
-    session: ClientSession,
-    codeListCode: CodeListCode
-  ): Future[Unit] =
-    collection
-      .deleteMany(
-        session,
-        equal("codeListCode", codeListCode.code)
-      )
-      .toFuture()
-      .map { result =>
-        if (!result.wasAcknowledged())
-          throw MongoError.NotAcknowledged
-      }
-
-  def saveEntries(
-    session: ClientSession,
-    codeListCode: CodeListCode,
-    entries: List[CodeListEntry]
-  ): Future[Unit] =
-    for {
-      _ <- deleteCorrespondenceListEntries(session, codeListCode)
-
-      _ <- collection.insertMany(session, entries).toFuture().map { result =>
-        if (!result.wasAcknowledged())
-          throw MongoError.NotAcknowledged
-      }
-    } yield ()
+  override def filtersForKey(codeListCode: CodeListCode, key: CorrespondenceListKey): Seq[Bson] =
+    Seq(
+      key.domain.map(equal("domain", _)).getOrElse(nullOrMissing("domain")),
+      key.phase.map(equal("phase", _)).getOrElse(nullOrMissing("phase")),
+      equal("codeListCode", codeListCode.code),
+      equal("key", key.key),
+      equal("value", key.value)
+    )
 
   def executeInstruction(
     session: ClientSession,
     instruction: CorrespondenceListInstruction
   ): Future[Unit] =
     instruction match {
-      case CorrespondenceListInstruction.UpsertEntry(codeListEntry) =>
+      case UpsertEntry(codeListEntry) =>
         logger.debug(
           s"Upserting entry of correspondence list ${codeListEntry.codeListCode.code} with key ${codeListEntry.key}"
         )
@@ -108,7 +95,7 @@ class CorrespondenceListsRepository @Inject() (mongoComponent: MongoComponent)(u
           )
           _ <- upsertEntry(session, codeListEntry)
         } yield ()
-      case CorrespondenceListInstruction.InvalidateEntry(codeListEntry) =>
+      case InvalidateEntry(codeListEntry) =>
         logger.debug(
           s"Invalidating entry of correspondence list ${codeListEntry.codeListCode.code} with key ${codeListEntry.key}"
         )
@@ -119,10 +106,12 @@ class CorrespondenceListsRepository @Inject() (mongoComponent: MongoComponent)(u
           codeListEntry.activeFrom,
           includeActiveFrom = true
         )
-      case CorrespondenceListInstruction.RecordMissingEntry(
+      case RecordMissingEntry(
             codeListCode,
             key,
             value,
+            phase,
+            domain,
             removedAt
           ) =>
         logger.debug(
@@ -131,7 +120,7 @@ class CorrespondenceListsRepository @Inject() (mongoComponent: MongoComponent)(u
         supersedePreviousEntries(
           session,
           codeListCode,
-          (key, value),
+          CorrespondenceListKey(key, value, phase, domain),
           removedAt,
           includeActiveFrom = true
         )

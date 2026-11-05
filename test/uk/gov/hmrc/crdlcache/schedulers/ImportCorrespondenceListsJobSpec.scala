@@ -39,14 +39,8 @@ import uk.gov.hmrc.crdlcache.models.CorrespondenceListInstruction.{
   UpsertEntry
 }
 import uk.gov.hmrc.crdlcache.models.Operation.Update
-import uk.gov.hmrc.crdlcache.models.dps.codelist.{
-  CodeListResponse,
-  DataItem,
-  DpsCodeListEntry,
-  DpsCodeListSnapshot,
-  LanguageDescription
-}
 import uk.gov.hmrc.crdlcache.models.dps.codelist
+import uk.gov.hmrc.crdlcache.models.dps.codelist.*
 import uk.gov.hmrc.crdlcache.models.errors.MongoError
 import uk.gov.hmrc.crdlcache.repositories.{CorrespondenceListsRepository, LastUpdatedRepository}
 import uk.gov.hmrc.mongo.MongoComponent
@@ -257,14 +251,14 @@ class ImportCorrespondenceListsJobSpec
         equalTo(None)
       )
     )
-      .thenReturn(Future.successful(Set.empty[(String, String)]))
+      .thenReturn(Future.successful(Set.empty[CorrespondenceListKey]))
       .thenReturn(
         Future.successful(
           Set(
-            "27101944" -> "E430",
-            "27101944" -> "E440",
-            "27102019" -> "E430",
-            "27102019" -> "E440"
+            CorrespondenceListKey("27101944", "E430", None, None),
+            CorrespondenceListKey("27101944", "E440", None, None),
+            CorrespondenceListKey("27102019", "E430", None, None),
+            CorrespondenceListKey("27102019", "E440", None, None),
           )
         )
       )
@@ -353,28 +347,20 @@ class ImportCorrespondenceListsJobSpec
         equalTo(None)
       )
     )
-      .thenReturn(Future.successful(Set.empty[(String, String)]))
+      .thenReturn(Future.successful(Set.empty[CorrespondenceListKey]))
       .thenReturn(
         Future.successful(
           Set(
-            "27101944" -> "E430",
-            "27101944" -> "E440",
-            "27102019" -> "E430",
-            "27102019" -> "E440"
+            CorrespondenceListKey("27101944", "E430", None, None),
+            CorrespondenceListKey("27101944", "E440", None, None),
+            CorrespondenceListKey("27102019", "E430", None, None),
+            CorrespondenceListKey("27102019", "E440", None, None)
           )
         )
       )
 
     when(correspondenceListsRepository.countEntries(any(), any(), any(), any()))
       .thenReturn(Future.successful(0L))
-
-    when(
-      correspondenceListsRepository.saveEntries(
-        equalTo(clientSession),
-        equalTo(E200),
-        any()
-      )
-    ).thenReturn(Future.unit)
 
     // Correspondence list configuration
     when(appConfig.correspondenceListConfigs).thenReturn(
@@ -413,12 +399,6 @@ class ImportCorrespondenceListsJobSpec
       equalTo(None),
       equalTo(None),
       equalTo(correspondenceListsJob.SeedExtractDate)
-    )
-
-    verify(correspondenceListsRepository, never()).saveEntries(
-      equalTo(clientSession),
-      equalTo(E200),
-      any()
     )
 
     // There are two snapshots for E200, but we already have snapshot 1
@@ -469,14 +449,14 @@ class ImportCorrespondenceListsJobSpec
         equalTo(None)
       )
     )
-      .thenReturn(Future.successful(Set.empty[(String, String)]))
+      .thenReturn(Future.successful(Set.empty[CorrespondenceListKey]))
       .thenReturn(
         Future.successful(
           Set(
-            "27101944" -> "E430",
-            "27101944" -> "E440",
-            "27102019" -> "E430",
-            "27102019" -> "E440"
+            CorrespondenceListKey("27101944", "E430", None, None),
+            CorrespondenceListKey("27101944", "E440", None, None),
+            CorrespondenceListKey("27102019", "E430", None, None),
+            CorrespondenceListKey("27102019", "E440", None, None),
           )
         )
       )
@@ -547,7 +527,7 @@ class ImportCorrespondenceListsJobSpec
         equalTo(None)
       )
     )
-      .thenReturn(Future.successful(Set.empty[(String, String)]))
+      .thenReturn(Future.successful(Set.empty[CorrespondenceListKey]))
 
     val correspondenceListConfig =
       CorrespondenceListConfig(E200, SEED, "CnCode", "ExciseProductCode")
@@ -636,10 +616,10 @@ class ImportCorrespondenceListsJobSpec
       .thenReturn(
         Future.successful(
           Set(
-            "27101944" -> "E430",
-            "27101944" -> "E440",
-            "27102019" -> "E430",
-            "27102019" -> "E440"
+            CorrespondenceListKey("27101944", "E430", None, None),
+            CorrespondenceListKey("27101944", "E440", None, None),
+            CorrespondenceListKey("27102019", "E430", None, None),
+            CorrespondenceListKey("27102019", "E440", None, None),
           )
         )
       )
@@ -686,7 +666,7 @@ class ImportCorrespondenceListsJobSpec
           None
         )
       ),
-      RecordMissingEntry(E200, "27102019", "E430", fixedInstant),
+      RecordMissingEntry(E200, "27102019", "E430", None, None, fixedInstant),
       UpsertEntry(
         CodeListEntry(
           E200,
@@ -716,7 +696,7 @@ class ImportCorrespondenceListsJobSpec
     )
       .thenReturn(
         Future.successful(
-          Set("27101966" -> "E470")
+          Set(CorrespondenceListKey("27101966", "E470", None, None))
         )
       )
 
