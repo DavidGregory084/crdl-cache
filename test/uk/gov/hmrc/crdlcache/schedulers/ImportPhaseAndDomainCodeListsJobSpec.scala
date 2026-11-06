@@ -33,8 +33,8 @@ import uk.gov.hmrc.crdlcache.connectors.DpsConnector
 import uk.gov.hmrc.crdlcache.models.*
 import uk.gov.hmrc.crdlcache.models.CodeListCode.{CL231, CL234}
 import uk.gov.hmrc.crdlcache.models.CodeListOrigin.CSRD2
-import uk.gov.hmrc.crdlcache.models.Instruction.{RecordMissingEntry, UpsertEntry}
-import uk.gov.hmrc.crdlcache.models.Operation.Update
+import uk.gov.hmrc.crdlcache.models.Instruction.{InvalidateEntry, RecordMissingEntry, UpsertEntry}
+import uk.gov.hmrc.crdlcache.models.State.Valid
 import uk.gov.hmrc.crdlcache.models.dps.codelist
 import uk.gov.hmrc.crdlcache.models.dps.codelist.*
 import uk.gov.hmrc.crdlcache.models.errors.MongoError
@@ -817,7 +817,7 @@ class ImportPhaseAndDomainCodeListsJobSpec
           Some(Domain.NCTS)
         )
       ),
-      UpsertEntry(
+      InvalidateEntry(
         CodeListEntry(
           CL231,
           "T2F",
@@ -898,19 +898,21 @@ class ImportPhaseAndDomainCodeListsJobSpec
               "Heavy fuel oil falling within CN codes 2710 19 62, 2710 19 66, 2710 19 67, 2710 20 32 and 2710 20 38 (Article 20(1)(c) of Directive 2003/96/EC)",
               Instant.parse("2023-11-02T00:00:00Z"),
               Some(Instant.parse("2023-10-31T00:00:00Z")),
-              Some(Update),
+              None,
+              Some(Valid),
               Json.obj(
                 "actionIdentification" -> "1093"
               ),
-              None,
-              None
+              Some(Phase.NCTS6),
+              Some(Domain.NCTS)
             ),
             CodeListSnapshotEntry(
               "E470",
               "Heavy fuel oil falling within CN codes 2710 19 62, 2710 19 66, 2710 19 67, 2710 20 32 and 2710 20 38 (Article 20(1)(c) of Directive 2003/96/EC)",
               Instant.parse("2023-11-02T00:00:00Z"),
               Some(Instant.parse("2023-11-01T00:00:00Z")),
-              Some(Update),
+              None,
+              Some(Valid),
               Json.obj(
                 "actionIdentification" -> "1096"
               ),
@@ -922,7 +924,8 @@ class ImportPhaseAndDomainCodeListsJobSpec
               "Heavy fuel oil falling within CN codes 2710 19 62, 2710 19 66, 2710 19 67, 2710 20 32 and 2710 20 38 (Article 20(1)(c) of Directive 2003/96/EC)",
               Instant.parse("2023-11-02T00:00:00Z"),
               Some(Instant.parse("2023-11-01T00:00:00Z")),
-              Some(Update),
+              None,
+              Some(Valid),
               Json.obj(
                 "actionIdentification" -> "1099"
               ),

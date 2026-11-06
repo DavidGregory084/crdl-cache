@@ -20,22 +20,19 @@ import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.must.Matchers
 import play.api.libs.json.Json
 import uk.gov.hmrc.crdlcache.config.{CodeListConfig, CorrespondenceListConfig}
-import uk.gov.hmrc.crdlcache.models.CodeListCode.{BC08, E200, code}
-import uk.gov.hmrc.crdlcache.models.CodeListOrigin.SEED
+import uk.gov.hmrc.crdlcache.models.CodeListCode.{BC08, CL008, E200, code}
+import uk.gov.hmrc.crdlcache.models.CodeListOrigin.{CSRD2, SEED}
 import uk.gov.hmrc.crdlcache.models.Operation.{Create, Update}
+import uk.gov.hmrc.crdlcache.models.State.Valid
 import uk.gov.hmrc.crdlcache.models.dps.codelist
 import uk.gov.hmrc.crdlcache.models.dps.codelist.{DataItem, DpsCodeListEntry, LanguageDescription}
-import uk.gov.hmrc.crdlcache.models.errors.ImportError.{
-  LanguageDescriptionMissing,
-  RequiredDataItemMissing,
-  RequiredDataItemsMissing,
-  UnknownOperation
-}
+import uk.gov.hmrc.crdlcache.models.errors.ImportError.*
 
 import java.time.Instant
 
 class CodeListSnapshotEntrySpec extends AnyFlatSpec with Matchers with TestData {
   private val BC08Config = CodeListConfig(BC08, SEED, "CountryCode")
+  private val CL008Config = CodeListConfig(CL008, CSRD2, "CountryCode")
   private val E200Config = CorrespondenceListConfig(E200, SEED, "CnCode", "ExciseProductCode")
 
   private val valueDate     = "17-01-2024"
@@ -60,6 +57,7 @@ class CodeListSnapshotEntrySpec extends AnyFlatSpec with Matchers with TestData 
     Instant.parse(withDate),
     Some(Instant.parse(withDate)),
     Some(Update),
+    None,
     Json.obj(
       "actionIdentification" -> "811"
     ),
@@ -134,6 +132,7 @@ class CodeListSnapshotEntrySpec extends AnyFlatSpec with Matchers with TestData 
       Instant.parse("2024-01-17T00:00:00Z"),
       None,
       None,
+      None,
       Json.obj(),
       None,
       None
@@ -155,6 +154,7 @@ class CodeListSnapshotEntrySpec extends AnyFlatSpec with Matchers with TestData 
       "AW",
       "Aruba",
       Instant.parse("2024-01-17T00:00:00Z"),
+      None,
       None,
       None,
       Json.obj(),
@@ -198,12 +198,55 @@ class CodeListSnapshotEntrySpec extends AnyFlatSpec with Matchers with TestData 
       Instant.parse("2024-01-17T00:00:00Z"),
       None,
       Some(Create),
+      None,
       Json.obj(),
       None,
       None
     )
 
     CodeListSnapshotEntry.fromDpsEntry(BC08Config, inputEntry) mustBe expectedEntry
+  }
+
+  it should "fail when the state property does not correspond to any known state" in {
+    val unknownState =
+      the[UnknownState] thrownBy CodeListSnapshotEntry.fromDpsEntry(
+        CL008Config,
+        DpsCodeListEntry(
+          List(
+            codelist.DataItem(CL008Config.keyProperty, Some("AW")),
+            codelist.DataItem("RDEntryStatus_activeFrom", Some("17-01-2024")),
+            codelist.DataItem("RDEntryStatus_state", Some("X"))
+          ),
+          List(codelist.LanguageDescription("en", "Aruba"))
+        )
+      )
+
+    unknownState.code mustBe "X"
+  }
+
+  it should "succeed when the state property is recognised" in {
+    val inputEntry = DpsCodeListEntry(
+      List(
+        codelist.DataItem(CL008Config.keyProperty, Some("AW")),
+        codelist.DataItem("RDEntryStatus_activeFrom", Some("17-01-2024")),
+        codelist.DataItem("RDEntryStatus_state", Some("valid"))
+      ),
+      List(codelist.LanguageDescription("en", "Aruba"))
+    )
+
+    val expectedEntry = CodeListSnapshotEntry(
+      "AW",
+      "Aruba",
+      Instant.parse("2024-01-17T00:00:00Z"),
+      None,
+      None,
+      Some(Valid),
+      Json.obj("state" -> "valid"), // ideally we'd like to avoid this, but it's already being used by customs-reference-data
+      None,
+      None
+    )
+
+    CodeListSnapshotEntry.fromDpsEntry(CL008Config, inputEntry) mustBe expectedEntry
   }
 
   it should "convert '*Flag' properties that equal String '1' to Boolean 'true'" in {
@@ -220,6 +263,7 @@ class CodeListSnapshotEntrySpec extends AnyFlatSpec with Matchers with TestData 
       "AW",
       "Aruba",
       Instant.parse("2024-01-17T00:00:00Z"),
+      None,
       None,
       None,
       Json.obj("densityApplicabilityFlag" -> true),
@@ -244,6 +288,7 @@ class CodeListSnapshotEntrySpec extends AnyFlatSpec with Matchers with TestData 
       "AW",
       "Aruba",
       Instant.parse("2024-01-17T00:00:00Z"),
+      None,
       None,
       None,
       Json.obj("densityApplicabilityFlag" -> false),

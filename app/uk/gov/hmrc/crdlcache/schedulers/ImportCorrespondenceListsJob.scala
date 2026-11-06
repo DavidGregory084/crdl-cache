@@ -26,6 +26,7 @@ import uk.gov.hmrc.crdlcache.models.CorrespondenceListInstruction.{
   UpsertEntry
 }
 import uk.gov.hmrc.crdlcache.models.Operation.{Create, Delete, Invalidate, Update}
+import uk.gov.hmrc.crdlcache.models.State.{Invalid, Valid}
 import uk.gov.hmrc.crdlcache.repositories.{CorrespondenceListsRepository, LastUpdatedRepository}
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.lock.MongoLockRepository
@@ -89,10 +90,18 @@ class ImportCorrespondenceListsJob @Inject() (
       newEntry.domain
     )
 
-    newEntry.operation match {
-      case Some(Create | Update)     => UpsertEntry(updatedEntry)
-      case Some(Invalidate | Delete) => InvalidateEntry(updatedEntry)
-      case None                      => UpsertEntry(updatedEntry)
+    val seedOperation = newEntry.operation.map {
+      case Create | Update     => UpsertEntry(updatedEntry)
+      case Invalidate | Delete => InvalidateEntry(updatedEntry)
     }
+
+    val csrd2Validity = newEntry.state.map {
+      case Valid   => UpsertEntry(updatedEntry)
+      case Invalid => InvalidateEntry(updatedEntry)
+    }
+
+    seedOperation
+      .orElse(csrd2Validity)
+      .getOrElse(UpsertEntry(updatedEntry))
   }
 }

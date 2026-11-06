@@ -30,6 +30,11 @@ enum CodeListOrigin {
     case CSRD2 => None
   }
 
+  def stateProperty: Option[String] = this match {
+    case CSRD2 => Some("RDEntryStatus_state")
+    case SEED  => None
+  }
+
   def operationProperty: Option[String] = this match {
     case SEED  => Some("Action_Operation")
     case CSRD2 => None

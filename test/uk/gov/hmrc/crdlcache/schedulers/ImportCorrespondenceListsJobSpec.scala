@@ -718,6 +718,7 @@ class ImportCorrespondenceListsJobSpec
               Instant.parse("2023-11-02T00:00:00Z"),
               Some(Instant.parse("2023-10-31T00:00:00Z")),
               Some(Update),
+              None,
               Json.obj(
                 "actionIdentification" -> "1093"
               ),
@@ -730,6 +731,7 @@ class ImportCorrespondenceListsJobSpec
               Instant.parse("2023-11-02T00:00:00Z"),
               Some(Instant.parse("2023-11-01T00:00:00Z")),
               Some(Update),
+              None,
               Json.obj(
                 "actionIdentification" -> "1096"
               ),
@@ -742,6 +744,7 @@ class ImportCorrespondenceListsJobSpec
               Instant.parse("2023-11-02T00:00:00Z"),
               Some(Instant.parse("2023-11-01T00:00:00Z")),
               Some(Update),
+              None,
               Json.obj(
                 "actionIdentification" -> "1099"
               ),

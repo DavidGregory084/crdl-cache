@@ -44,6 +44,7 @@ class CodeListSnapshotSpec extends AnyFlatSpec with Matchers with TestData {
           Instant.parse("2024-01-17T00:00:00Z"),
           Some(Instant.parse("2024-01-17T00:00:00Z")),
           Some(Update),
+          None,
           Json.obj(
             "actionIdentification" -> "811"
           ),
