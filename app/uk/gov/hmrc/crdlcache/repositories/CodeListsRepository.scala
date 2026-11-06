@@ -61,7 +61,7 @@ abstract class CodeListsRepository[K, I](
 
   def keyOfEntry(codeListEntry: CodeListEntry): K
 
-  def filtersForKey(key: K): Seq[Bson]
+  def filtersForKey(codeListCode: CodeListCode, key: K): Seq[Bson]
 
   def executeInstruction(session: ClientSession, instruction: I): Future[Unit]
 
@@ -70,6 +70,9 @@ abstract class CodeListsRepository[K, I](
       (previousInstruction, nextInstruction) =>
         previousInstruction.flatMap(_ => executeInstruction(session, nextInstruction))
     }
+
+  protected def nullOrMissing(fieldName: String) =
+    or(equal(fieldName, null), exists(fieldName, false))
 
   def fetchEntryKeys(
     session: ClientSession,
@@ -81,14 +84,10 @@ abstract class CodeListsRepository[K, I](
       .find(
         session,
         and(
-          Seq(
-            equal("codeListCode", code.code),
-            equal("activeTo", null)
-          )
-            ++ phase.fold(None)(p =>
-              Seq(equal("phase", p))
-                ++ domain.fold(None)(d => Seq(equal("domain", d)))
-            )*
+          domain.map(equal("domain", _)).getOrElse(nullOrMissing("domain")),
+          phase.map(equal("phase", _)).getOrElse(nullOrMissing("phase")),
+          equal("codeListCode", code.code),
+          equal("activeTo", null)
         )
       )
       .map(keyOfEntry)
@@ -103,10 +102,10 @@ abstract class CodeListsRepository[K, I](
     phase: Option[Phase],
     domain: Option[Domain]
   ): Future[Seq[CodeListEntry]] = {
-    val mandatoryFilters = List(
-      equal("codeListCode", code.code),
-      lte("activeFrom", activeAt),
-      or(equal("activeTo", null), gt("activeTo", activeAt))
+    val listFilters = List(
+      domain.map(equal("domain", _)).getOrElse(nullOrMissing("domain")),
+      phase.map(equal("phase", _)).getOrElse(nullOrMissing("phase")),
+      equal("codeListCode", code.code)
     )
 
     val keyFilters = filterKeys
@@ -117,6 +116,11 @@ abstract class CodeListsRepository[K, I](
       }
       .getOrElse(List.empty)
 
+    val dateFilters = List(
+      lte("activeFrom", activeAt),
+      or(equal("activeTo", null), gt("activeTo", activeAt))
+    )
+
     val propertyFilters = filterProperties
       .map { props =>
         if props.nonEmpty
@@ -125,13 +129,7 @@ abstract class CodeListsRepository[K, I](
       }
       .getOrElse(List.empty)
 
-    val phaseDomainFilters = (phase, domain) match {
-      case (Some(p), Some(d)) => List(equal("phase", p), equal("domain", d))
-      case (None, None)       => List(exists("phase", false), exists("domain", false))
-      case _                  => List.empty
-    }
-
-    val allFilters = mandatoryFilters ++ keyFilters ++ propertyFilters ++ phaseDomainFilters
+    val allFilters = listFilters ++ keyFilters ++ dateFilters ++ propertyFilters
 
     collection
       .find(and(allFilters*))
@@ -191,13 +189,13 @@ abstract class CodeListsRepository[K, I](
       .updateMany(
         session,
         and(
-          Seq(
-            equal("codeListCode", codeListCode.code),
-            if includeActiveFrom
-            then lte("activeFrom", activeFrom)
-            else lt("activeFrom", activeFrom),
-            or(equal("activeTo", null), exists("activeTo", false))
-          ) ++ filtersForKey(key)*
+          filtersForKey(codeListCode, key) ++
+            Seq(
+              if includeActiveFrom
+              then lte("activeFrom", activeFrom)
+              else lt("activeFrom", activeFrom),
+              nullOrMissing("activeTo")
+            )*
         ),
         Updates.set("activeTo", activeFrom)
       )
@@ -213,10 +211,8 @@ abstract class CodeListsRepository[K, I](
       .replaceOne(
         session,
         and(
-          Seq(
-            equal("codeListCode", codeListEntry.codeListCode.code),
-            equal("activeFrom", codeListEntry.activeFrom)
-          ) ++ filtersForKey(keyOfEntry(codeListEntry))*
+          filtersForKey(codeListEntry.codeListCode, keyOfEntry(codeListEntry)) ++
+            Seq(equal("activeFrom", codeListEntry.activeFrom))*
         ),
         codeListEntry,
         new ReplaceOptions().upsert(true)

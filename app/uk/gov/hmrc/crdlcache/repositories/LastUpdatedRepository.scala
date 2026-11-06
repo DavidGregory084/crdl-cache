@@ -41,7 +41,7 @@ class LastUpdatedRepository @Inject() (val mongoComponent: MongoComponent)(using
     collectionName = "last-updated",
     domainFormat = MongoFormats.lastUpdatedFormat,
     indexes = Seq(
-      IndexModel(Indexes.ascending("codeListCode", "phase", "domain"), IndexOptions().unique(true)),
+      IndexModel(Indexes.ascending("domain", "phase", "codeListCode"), IndexOptions().unique(true)),
       IndexModel(Indexes.ascending("codeListCode"), IndexOptions().unique(false)),
       IndexModel(Indexes.ascending("phase"), IndexOptions().unique(false)),
       IndexModel(Indexes.ascending("domain"), IndexOptions().unique(false))
@@ -53,6 +53,9 @@ class LastUpdatedRepository @Inject() (val mongoComponent: MongoComponent)(using
   // This collection contains only one document per codelist
   override lazy val requiresTtlIndex: Boolean = false
 
+  protected def nullOrMissing(fieldName: String) =
+    or(equal(fieldName, null), exists(fieldName, false))
+
   def fetchLastUpdated(
     codeListCode: CodeListCode,
     phase: Option[Phase],
@@ -61,9 +64,9 @@ class LastUpdatedRepository @Inject() (val mongoComponent: MongoComponent)(using
     collection
       .find(
         and(
-          Seq(equal("codeListCode", codeListCode.code))
-            ++ phase.fold(None)(p => Seq(equal("phase", p)))
-            ++ domain.fold(None)(d => Seq(equal("domain", d)))*
+          domain.map(equal("domain", _)).getOrElse(nullOrMissing("domain")),
+          phase.map(equal("phase", _)).getOrElse(nullOrMissing("phase")),
+          equal("codeListCode", codeListCode.code)
         )
       )
       .headOption()
@@ -84,11 +87,16 @@ class LastUpdatedRepository @Inject() (val mongoComponent: MongoComponent)(using
     val filter = (phase, domain) match {
       case (Some(phase), Some(domain)) =>
         and(
-          equal("codeListCode", codeListCode.code),
+          equal("domain", domain),
           equal("phase", phase),
-          equal("domain", domain)
+          equal("codeListCode", codeListCode.code)
         )
-      case (None, None) => equal("codeListCode", codeListCode.code)
+      case (None, None) =>
+        and(
+          nullOrMissing("domain"),
+          nullOrMissing("phase"),
+          equal("codeListCode", codeListCode.code)
+        )
       case _ =>
         throw Exception(
           "Both phase and domain must be provided together, or neither should be provided"
@@ -119,10 +127,10 @@ class LastUpdatedRepository @Inject() (val mongoComponent: MongoComponent)(using
     phase: Option[Phase],
     domain: Option[Domain]
   ): Seq[org.mongodb.scala.bson.conversions.Bson] = {
+    val domainFilter = domain.map(equal("domain", _)).toSeq
+    val phaseFilter  = phase.map(equal("phase", _)).toSeq
     val codeFilter   = codeListCode.map(c => regex("codeListCode", c.code, "i")).toSeq
-    val phaseFilter  = phase.map(p => equal("phase", p)).toSeq
-    val domainFilter = domain.map(d => equal("domain", d)).toSeq
-    codeFilter ++ phaseFilter ++ domainFilter
+    domainFilter ++ phaseFilter ++ codeFilter
   }
 
   def fetchAllLastUpdatedPaged(

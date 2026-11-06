@@ -25,7 +25,7 @@ import play.api.libs.json.*
 import uk.gov.hmrc.crdlcache.models
 import uk.gov.hmrc.crdlcache.models.CodeListCode.code
 import uk.gov.hmrc.crdlcache.models.Instruction.{InvalidateEntry, RecordMissingEntry, UpsertEntry}
-import uk.gov.hmrc.crdlcache.models.{CodeListEntry, CodeListKey, Instruction}
+import uk.gov.hmrc.crdlcache.models.{CodeListCode, CodeListEntry, CodeListKey, Instruction}
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.Codecs
 
@@ -44,7 +44,7 @@ class StandardCodeListsRepository @Inject() (mongoComponent: MongoComponent)(usi
         Codecs.playFormatSumCodecs[JsBoolean](Format(Reads.JsBooleanReads, Writes.jsValueWrites)),
     indexes = Seq(
       IndexModel(
-        Indexes.ascending("codeListCode", "phase", "domain", "key", "activeFrom"),
+        Indexes.ascending("domain", "phase", "codeListCode", "key", "activeFrom"),
         IndexOptions().unique(true)
       ),
       IndexModel(
@@ -64,10 +64,13 @@ class StandardCodeListsRepository @Inject() (mongoComponent: MongoComponent)(usi
   override def keyOfEntry(codeListEntry: CodeListEntry): CodeListKey =
     CodeListKey(codeListEntry.key, codeListEntry.phase, codeListEntry.domain)
 
-  override def filtersForKey(key: CodeListKey): Seq[Bson] =
-    Seq(equal("key", key.key))
-      ++ key.phase.fold(None)(p => Seq(equal("phase", p)))
-      ++ key.domain.fold(None)(d => Seq(equal("domain", d)))
+  override def filtersForKey(codeListCode: CodeListCode, key: CodeListKey): Seq[Bson] =
+    Seq(
+      key.domain.map(equal("domain", _)).getOrElse(nullOrMissing("domain")),
+      key.phase.map(equal("phase", _)).getOrElse(nullOrMissing("phase")),
+      equal("codeListCode", codeListCode.code),
+      equal("key", key.key)
+    )
 
   def executeInstruction(session: ClientSession, instruction: Instruction): Future[Unit] =
     instruction match {

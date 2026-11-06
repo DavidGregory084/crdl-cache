@@ -25,12 +25,12 @@ import org.scalatest.matchers.must.Matchers
 import org.scalatest.{Assertion, OptionValues}
 import play.api.libs.json.{JsString, Json}
 import uk.gov.hmrc.crdlcache.models.CodeListCode.{E200, code}
-import uk.gov.hmrc.crdlcache.models.CodeListEntry
 import uk.gov.hmrc.crdlcache.models.CorrespondenceListInstruction.{
   InvalidateEntry,
   RecordMissingEntry,
   UpsertEntry
 }
+import uk.gov.hmrc.crdlcache.models.{CodeListEntry, CorrespondenceListKey}
 import uk.gov.hmrc.mongo.test.{
   CleanMongoCollectionSupport,
   IndexedMongoQueriesSupport,
@@ -218,13 +218,17 @@ class CorrespondenceListsRepositorySpec
   "CorrespondenceListsRepository.fetchEntryKeys" should "return entries that have not been superseded" in withCorrespondenceListEntries(
     correspondenceListEntries
   ) { session =>
-    repository.fetchEntryKeys(session, E200).map(_ must contain("27101944" -> "E440"))
+    repository
+      .fetchEntryKeys(session, E200)
+      .map(_ must contain(CorrespondenceListKey("27101944", "E440", None, None)))
   }
 
   it should "not return entries that are invalidated" in withCorrespondenceListEntries(
     correspondenceListEntries
   ) { session =>
-    repository.fetchEntryKeys(session, E200).map(_ mustNot contain("27101944" -> "E460"))
+    repository
+      .fetchEntryKeys(session, E200)
+      .map(_ mustNot contain(CorrespondenceListKey("27101944", "E460", None, None)))
   }
 
   it should "contain the active code list entry keys" in withCorrespondenceListEntries(
@@ -234,7 +238,7 @@ class CorrespondenceListsRepositorySpec
       .fetchEntryKeys(session, E200)
       .map {
         _ mustBe entriesWithNoEndDate
-          .map(entry => (entry.key, entry.value))
+          .map(entry => CorrespondenceListKey(entry.key, entry.value, entry.phase, entry.domain))
           .toSet
       }
   }
@@ -377,6 +381,8 @@ class CorrespondenceListsRepositorySpec
         .find(
           session,
           and(
+            Filters.exists("domain", false),
+            Filters.exists("phase", false),
             Filters.eq("codeListCode", E200.code),
             Filters.eq("key", activeEntry.key),
             Filters.eq("value", activeEntry.value)
@@ -403,6 +409,8 @@ class CorrespondenceListsRepositorySpec
         .find(
           session,
           and(
+            Filters.exists("domain", false),
+            Filters.exists("phase", false),
             Filters.eq("codeListCode", E200.code),
             Filters.eq("key", activeEntry.key),
             Filters.eq("value", activeEntry.value)
@@ -425,6 +433,8 @@ class CorrespondenceListsRepositorySpec
               E200,
               activeEntry.key,
               activeEntry.value,
+              None,
+              None,
               Instant.parse("2025-05-22T00:00:00Z")
             )
           )
@@ -434,6 +444,8 @@ class CorrespondenceListsRepositorySpec
         .find(
           session,
           and(
+            Filters.exists("domain", false),
+            Filters.exists("phase", false),
             Filters.eq("codeListCode", E200.code),
             Filters.eq("key", activeEntry.key),
             Filters.eq("value", activeEntry.value)
@@ -458,6 +470,8 @@ class CorrespondenceListsRepositorySpec
               E200,
               activeEntry.key,
               activeEntry.value,
+              activeEntry.phase,
+              activeEntry.domain,
               activeEntry.activeFrom
             )
           )
@@ -467,6 +481,8 @@ class CorrespondenceListsRepositorySpec
         .find(
           session,
           and(
+            Filters.exists("domain", false),
+            Filters.exists("phase", false),
             Filters.eq("codeListCode", E200.code),
             Filters.eq("key", activeEntry.key),
             Filters.eq("value", activeEntry.value)
@@ -493,6 +509,8 @@ class CorrespondenceListsRepositorySpec
         .find(
           session,
           and(
+            Filters.exists("domain", false),
+            Filters.exists("phase", false),
             Filters.eq("codeListCode", E200.code),
             Filters.eq("key", activeEntry.key),
             Filters.eq("value", activeEntry.value)
@@ -521,6 +539,8 @@ class CorrespondenceListsRepositorySpec
         .find(
           session,
           and(
+            Filters.exists("domain", false),
+            Filters.exists("phase", false),
             Filters.eq("codeListCode", E200.code),
             Filters.eq("key", newCorrespondenceEntry.key)
           )
@@ -550,6 +570,8 @@ class CorrespondenceListsRepositorySpec
         .find(
           session,
           and(
+            Filters.exists("domain", false),
+            Filters.exists("phase", false),
             Filters.eq("codeListCode", E200.code),
             Filters.eq("key", activeEntry.key)
           )
@@ -575,6 +597,8 @@ class CorrespondenceListsRepositorySpec
                 E200,
                 newCorrespondenceEntry.key,
                 newCorrespondenceEntry.value,
+                None,
+                None,
                 Instant.parse("2025-01-17T00:00:00Z")
               ),
               UpsertEntry(existingE470Entry),
@@ -586,6 +610,8 @@ class CorrespondenceListsRepositorySpec
           .find(
             session,
             and(
+              Filters.exists("domain", false),
+              Filters.exists("phase", false),
               Filters.eq("codeListCode", E200.code)
             )
           )
@@ -598,139 +624,5 @@ class CorrespondenceListsRepositorySpec
         postDatedE470Entry
       )
     }.futureValue
-  }
-  "CorrespondenceListsRepository.saveCorrespondenceListEntries" should "save the provided codelist entries" in {
-    val newEntries = List(
-      CodeListEntry(
-        E200,
-        "27101944",
-        "E430",
-        Instant.parse("2025-01-01T00:00:00Z"),
-        None,
-        Some(Instant.parse("2024-12-30T00:00:00Z")),
-        Json.obj(
-          "actionIdentification" -> "433"
-        ),
-        None,
-        None
-      ),
-      CodeListEntry(
-        E200,
-        "27101944",
-        "E440",
-        Instant.parse("2025-01-01T00:00:00Z"),
-        None,
-        Some(Instant.parse("2024-12-30T00:00:00Z")),
-        Json.obj(
-          "actionIdentification" -> "437"
-        ),
-        None,
-        None
-      ),
-      CodeListEntry(
-        E200,
-        "27102019",
-        "E430",
-        Instant.parse("2013-11-15T00:00:00Z"),
-        None,
-        Some(Instant.parse("2013-11-14T00:00:00Z")),
-        Json.obj(
-          "actionIdentification" -> "432"
-        ),
-        None,
-        None
-      ),
-      CodeListEntry(
-        E200,
-        "27102019",
-        "E440",
-        Instant.parse("2013-11-15T00:00:00Z"),
-        None,
-        Some(Instant.parse("2013-11-14T00:00:00Z")),
-        Json.obj(
-          "actionIdentification" -> "437"
-        ),
-        None,
-        None
-      )
-    )
-
-    repository.withSessionAndTransaction { session =>
-      repository.saveEntries(session, E200, newEntries)
-    }.futureValue
-
-    find(
-      Filters.equal("codeListCode", E200.code)
-    ).futureValue must contain theSameElementsAs newEntries
-  }
-
-  it should "remove existing entries when new entries are saved" in {
-    val existingEntries = List(
-      CodeListEntry(
-        E200,
-        "27101944",
-        "E440",
-        Instant.parse("2025-01-01T00:00:00Z"),
-        None,
-        Some(Instant.parse("2024-12-30T00:00:00Z")),
-        Json.obj(
-          "actionIdentification" -> "437"
-        ),
-        None,
-        None
-      ),
-      CodeListEntry(
-        E200,
-        "27102019",
-        "E430",
-        Instant.parse("2013-11-15T00:00:00Z"),
-        None,
-        Some(Instant.parse("2013-11-14T00:00:00Z")),
-        Json.obj(
-          "actionIdentification" -> "432"
-        ),
-        None,
-        None
-      )
-    )
-
-    repository.collection.insertMany(existingEntries).toFuture().futureValue
-
-    val newEntries = List(
-      CodeListEntry(
-        E200,
-        "27101944",
-        "E430",
-        Instant.parse("2025-01-01T00:00:00Z"),
-        None,
-        Some(Instant.parse("2024-12-30T00:00:00Z")),
-        Json.obj(
-          "actionIdentification" -> "433"
-        ),
-        None,
-        None
-      ),
-      CodeListEntry(
-        E200,
-        "27102019",
-        "E440",
-        Instant.parse("2013-11-15T00:00:00Z"),
-        None,
-        Some(Instant.parse("2013-11-14T00:00:00Z")),
-        Json.obj(
-          "actionIdentification" -> "437"
-        ),
-        None,
-        None
-      )
-    )
-
-    repository.withSessionAndTransaction { session =>
-      repository.saveEntries(session, E200, newEntries)
-    }.futureValue
-
-    find(
-      Filters.equal("codeListCode", E200.code)
-    ).futureValue must contain theSameElementsAs newEntries
   }
 }

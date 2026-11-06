@@ -20,27 +20,38 @@ import java.time.Instant
 
 enum Instruction {
   case UpsertEntry(codeListEntry: CodeListEntry)
+
   case InvalidateEntry(codeListEntry: CodeListEntry)
-  // case DeleteEntry(codeListEntry: CodeListEntry)
+
   case RecordMissingEntry(
     codeListCode: CodeListCode,
     override val key: String,
-    phase: Option[Phase],
-    domain: Option[Domain],
+    override val phase: Option[Phase],
+    override val domain: Option[Domain],
     removedAt: Instant
   )
 
   def key: String = this match {
-    case Instruction.UpsertEntry(codeListEntry)     => codeListEntry.key
-    case Instruction.InvalidateEntry(codeListEntry) => codeListEntry.key
-    // case Instruction.DeleteEntry(codeListEntry)     => codeListEntry.key
-    case Instruction.RecordMissingEntry(_, key, _, _, _) => key
+    case UpsertEntry(codeListEntry)          => codeListEntry.key
+    case InvalidateEntry(codeListEntry)      => codeListEntry.key
+    case RecordMissingEntry(_, key, _, _, _) => key
   }
 
   def activeFrom: Instant = this match {
-    case Instruction.UpsertEntry(codeListEntry)     => codeListEntry.activeFrom
-    case Instruction.InvalidateEntry(codeListEntry) => codeListEntry.activeFrom
-    // case Instruction.DeleteEntry(codeListEntry)     => codeListEntry.activeFrom
-    case Instruction.RecordMissingEntry(_, _, _, _, removedAt) => removedAt
+    case UpsertEntry(codeListEntry)                => codeListEntry.activeFrom
+    case InvalidateEntry(codeListEntry)            => codeListEntry.activeFrom
+    case RecordMissingEntry(_, _, _, _, removedAt) => removedAt
+  }
+
+  def phase: Option[Phase] = this match {
+    case UpsertEntry(codeListEntry)            => codeListEntry.phase
+    case InvalidateEntry(codeListEntry)        => codeListEntry.phase
+    case RecordMissingEntry(_, _, phase, _, _) => phase
+  }
+
+  def domain: Option[Domain] = this match {
+    case UpsertEntry(codeListEntry)             => codeListEntry.domain
+    case InvalidateEntry(codeListEntry)         => codeListEntry.domain
+    case RecordMissingEntry(_, _, _, domain, _) => domain
   }
 }
