@@ -51,19 +51,19 @@ class CustomsOfficeListsRepository @Inject() (val mongoComponent: MongoComponent
     domainFormat = MongoFormats.customsOfficeFormat,
     indexes = Seq(
       IndexModel(
-        Indexes.ascending("referenceNumber", "activeFrom", "phase", "domain"),
+        Indexes.ascending("domain", "phase", "referenceNumber", "activeFrom"),
         IndexOptions().unique(true)
       ),
       IndexModel(
-        Indexes.ascending("countryCode", "referenceNumber", "activeFrom", "phase", "domain")
+        Indexes.ascending("domain", "phase", "countryCode", "referenceNumber", "activeFrom")
       ),
       IndexModel(
         Indexes.ascending(
+          "domain",
+          "phase",
           "customsOfficeTimetable.customsOfficeTimetableLine.customsOfficeRoleTrafficCompetence.roleName",
           "referenceNumber",
-          "activeFrom",
-          "phase",
-          "domain"
+          "activeFrom"
         )
       ),
       IndexModel(Indexes.ascending("activeTo"), IndexOptions().expireAfter(30, TimeUnit.DAYS))
@@ -74,9 +74,23 @@ class CustomsOfficeListsRepository @Inject() (val mongoComponent: MongoComponent
   with Transactions
   with Logging {
 
-  def fetchCustomsOfficeReferenceNumbers(session: ClientSession): Future[Set[String]] =
+  protected def nullOrMissing(fieldName: String) =
+    or(equal(fieldName, null), exists(fieldName, false))
+
+  def fetchCustomsOfficeReferenceNumbers(
+    session: ClientSession,
+    phase: Option[Phase],
+    domain: Option[Domain]
+  ): Future[Set[String]] =
     collection
-      .find(session, equal("activeTo", null))
+      .find(
+        session,
+        and(
+          domain.map(equal("domain", _)).getOrElse(nullOrMissing("domain")),
+          phase.map(equal("phase", _)).getOrElse(nullOrMissing("phase")),
+          equal("activeTo", null)
+        )
+      )
       .map(_.referenceNumber)
       .toFuture()
       .map(_.toSet)
@@ -86,6 +100,8 @@ class CustomsOfficeListsRepository @Inject() (val mongoComponent: MongoComponent
       .replaceOne(
         session,
         Filters.and(
+          customsOffice.domain.map(equal("domain", _)).getOrElse(nullOrMissing("domain")),
+          customsOffice.phase.map(equal("phase", _)).getOrElse(nullOrMissing("phase")),
           equal("referenceNumber", customsOffice.referenceNumber),
           equal("activeFrom", customsOffice.activeFrom)
         ),
@@ -104,12 +120,16 @@ class CustomsOfficeListsRepository @Inject() (val mongoComponent: MongoComponent
     session: ClientSession,
     referenceNumber: String,
     activeFrom: Instant,
+    phase: Option[Phase],
+    domain: Option[Domain],
     includeActiveFrom: Boolean
   ): Future[Unit] = {
     collection
       .updateMany(
         session,
         and(
+          domain.map(equal("domain", _)).getOrElse(nullOrMissing("domain")),
+          phase.map(equal("phase", _)).getOrElse(nullOrMissing("phase")),
           equal("referenceNumber", referenceNumber),
           if includeActiveFrom then lte("activeFrom", activeFrom) else lt("activeFrom", activeFrom),
           or(equal("activeTo", null), exists("activeTo", false))
@@ -140,15 +160,17 @@ class CustomsOfficeListsRepository @Inject() (val mongoComponent: MongoComponent
                   session,
                   customsOffice.referenceNumber,
                   customsOffice.activeFrom,
+                  customsOffice.phase,
+                  customsOffice.domain,
                   includeActiveFrom = false
                 )
                 _ <- upsertOffice(session, customsOffice)
               } yield ()
-            case RecordMissingCustomsOffice(referenceNumber, removedAt) =>
+            case RecordMissingCustomsOffice(referenceNumber, phase, domain, removedAt) =>
               logger.debug(
                 s"Recording removal of customs office reference number: $referenceNumber"
               )
-              supersedeOffice(session, referenceNumber, removedAt, true)
+              supersedeOffice(session, referenceNumber, removedAt, phase, domain, true)
           }
         }
     }
@@ -162,8 +184,11 @@ class CustomsOfficeListsRepository @Inject() (val mongoComponent: MongoComponent
     domain: Option[Domain],
     roleDate: Option[LocalDate] = None
   ): Future[Seq[CustomsOffice]] = {
-    val mandatoryFilters =
-      List(lte("activeFrom", activeAt), or(equal("activeTo", null), gt("activeTo", activeAt)))
+    val countryCodeFilters = countryCodes
+      .map(countryCodes =>
+        if countryCodes.nonEmpty then List(in("countryCode", countryCodes.toSeq*)) else List.empty
+      )
+      .getOrElse(List.empty)
 
     val referenceNumberFilters = referenceNumbers
       .map(referenceNumbers =>
@@ -172,11 +197,8 @@ class CustomsOfficeListsRepository @Inject() (val mongoComponent: MongoComponent
       )
       .getOrElse(List.empty)
 
-    val countryCodeFilters = countryCodes
-      .map(countryCodes =>
-        if countryCodes.nonEmpty then List(in("countryCode", countryCodes.toSeq*)) else List.empty
-      )
-      .getOrElse(List.empty)
+    val dateFilters =
+      List(lte("activeFrom", activeAt), or(equal("activeTo", null), gt("activeTo", activeAt)))
 
     val roleFilters = (roles, roleDate) match {
       case (Some(r), Some(date)) if r.nonEmpty =>
@@ -206,12 +228,12 @@ class CustomsOfficeListsRepository @Inject() (val mongoComponent: MongoComponent
 
     val phaseDomainFilter = (phase, domain) match {
       case (Some(p), Some(d)) => List(equal("phase", p), equal("domain", d))
-      case (None, None)       => List(exists("phase", false), exists("domain", false))
+      case (None, None)       => List(nullOrMissing("phase"), nullOrMissing("domain"))
       case _                  => List.empty
     }
 
     val allFilters =
-      mandatoryFilters ++ referenceNumberFilters ++ countryCodeFilters ++ roleFilters ++ phaseDomainFilter
+      phaseDomainFilter ++ countryCodeFilters ++ roleFilters ++ referenceNumberFilters ++ dateFilters
 
     collection
       .find(and(allFilters*))
@@ -219,12 +241,16 @@ class CustomsOfficeListsRepository @Inject() (val mongoComponent: MongoComponent
   }
 
   def fetchCustomsOfficeByRef(
+    domain: Option[Domain],
+    phase: Option[Phase],
     referenceNumber: String,
     activeAt: Instant
   ): Future[Option[CustomsOffice]] =
     collection
       .find(
         and(
+          domain.map(equal("domain", _)).getOrElse(nullOrMissing("domain")),
+          phase.map(equal("phase", _)).getOrElse(nullOrMissing("phase")),
           equal("referenceNumber", referenceNumber),
           lte("activeFrom", activeAt),
           or(equal("activeTo", null), gt("activeTo", activeAt))
@@ -241,7 +267,7 @@ class CustomsOfficeListsRepository @Inject() (val mongoComponent: MongoComponent
     domain: Option[Domain]
   ): List[Bson] = {
 
-    val mandatoryFilters = List(
+    val dateFilters = List(
       lte("activeFrom", activeAt),
       or(equal("activeTo", null), gt("activeTo", activeAt))
     )
@@ -256,7 +282,7 @@ class CustomsOfficeListsRepository @Inject() (val mongoComponent: MongoComponent
       case _                  => List.empty
     }
 
-    mandatoryFilters ++ referenceNumberFilter ++ countryCodeFilter ++ officeNameFilter ++ phaseDomainFilters
+    phaseDomainFilters ++ countryCodeFilter ++ referenceNumberFilter ++ dateFilters ++ officeNameFilter
   }
 
   def fetchCustomsOfficeSummaries(

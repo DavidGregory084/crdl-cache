@@ -20,11 +20,16 @@ import java.time.Instant
 
 enum CustomsOfficeListsInstruction {
   case UpsertCustomsOffice(customsOffice: CustomsOffice)
-  case RecordMissingCustomsOffice(referenceNumber: String, removedAt: Instant)
+
+  case RecordMissingCustomsOffice(
+    referenceNumber: String,
+    phase: Option[Phase],
+    domain: Option[Domain],
+    removedAt: Instant
+  )
 
   def activeFrom: Instant = this match {
-    case CustomsOfficeListsInstruction.UpsertCustomsOffice(customsOffice) =>
-      customsOffice.activeFrom
-    case CustomsOfficeListsInstruction.RecordMissingCustomsOffice(_, removedAt) => removedAt
+    case UpsertCustomsOffice(customsOffice)             => customsOffice.activeFrom
+    case RecordMissingCustomsOffice(_, _, _, removedAt) => removedAt
   }
 }
