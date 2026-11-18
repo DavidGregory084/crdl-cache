@@ -21,7 +21,7 @@ import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import uk.gov.hmrc.crdlcache.controllers.auth.Permissions.ReadCustomsOfficeLists
 import uk.gov.hmrc.crdlcache.models.formats.HttpFormats
 import uk.gov.hmrc.crdlcache.models.paging.PagedResult
-import uk.gov.hmrc.crdlcache.models.{Domain, Phase}
+import uk.gov.hmrc.crdlcache.models.{Domain, DomainPhase, Phase}
 import uk.gov.hmrc.crdlcache.repositories.CustomsOfficeListsRepository
 import uk.gov.hmrc.internalauth.client.*
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
@@ -40,20 +40,12 @@ class CustomsOfficeListsController @Inject() (
   extends BackendController(cc)
   with HttpFormats {
 
-  private def validatePhaseDomain(phase: Option[Phase], domain: Option[Domain]): Option[String] =
-    (phase, domain) match {
-      case (Some(_), None) | (None, Some(_)) =>
-        Some("Both phase and domain must be provided together, or neither should be provided")
-      case _ => None
-    }
-
   def fetchCustomsOfficeLists(
     referenceNumbers: Option[Set[String]],
     countryCodes: Option[Set[String]],
     roles: Option[Set[String]],
     activeAt: Option[Instant],
-    phase: Option[Phase],
-    domain: Option[Domain],
+    domainPhase: Option[DomainPhase],
     roleDate: Option[LocalDate]
   ): Action[AnyContent] = auth.authorizedAction(ReadCustomsOfficeLists).async { _ =>
     if (roleDate.isDefined && roles.isEmpty)
@@ -63,37 +55,33 @@ class CustomsOfficeListsController @Inject() (
         )
       )
     else
-      validatePhaseDomain(phase, domain) match {
-        case Some(errorMessage) =>
-          Future.successful(BadRequest(Json.obj("error" -> errorMessage)))
-        case None =>
-          customsOfficeListsRepository
-            .fetchCustomsOfficeLists(
-              referenceNumbers,
-              countryCodes,
-              roles,
-              activeAt.getOrElse(clock.instant()),
-              phase,
-              domain,
-              roleDate
-            )
-            .map { customsOfficeLists =>
-              Ok(Json.toJson(customsOfficeLists))
-            }
-      }
+      customsOfficeListsRepository
+        .fetchCustomsOfficeLists(
+          referenceNumbers,
+          countryCodes,
+          roles,
+          activeAt.getOrElse(clock.instant()),
+          domainPhase,
+          roleDate
+        )
+        .map { customsOfficeLists =>
+          Ok(Json.toJson(customsOfficeLists))
+        }
   }
 
   def fetchCustomsOfficeDetail(
     referenceNumber: String,
     activeAt: Option[Instant],
     phase: Option[Phase],
-    domain: Option[Domain],
+    domain: Option[Domain]
   ): Action[AnyContent] = auth.authorizedAction(ReadCustomsOfficeLists).async { _ =>
     val resolvedActiveAt = activeAt.getOrElse(clock.instant())
-    customsOfficeListsRepository.fetchCustomsOfficeByRef(domain, phase, referenceNumber, resolvedActiveAt).map {
-      case Some(office) => Ok(Json.toJson(office))
-      case None         => NotFound
-    }
+    customsOfficeListsRepository
+      .fetchCustomsOfficeByRef(domain, phase, referenceNumber, resolvedActiveAt)
+      .map {
+        case Some(office) => Ok(Json.toJson(office))
+        case None         => NotFound
+      }
   }
 
   def fetchCustomsOfficeListSummaries(

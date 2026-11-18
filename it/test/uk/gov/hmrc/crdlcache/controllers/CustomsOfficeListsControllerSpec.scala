@@ -383,7 +383,6 @@ class CustomsOfficeListsControllerSpec
         equalTo(None),
         equalTo(fixedInstant),
         equalTo(None),
-        equalTo(None),
         equalTo(None)
       )
     )
@@ -408,8 +407,7 @@ class CustomsOfficeListsControllerSpec
         equalTo(None),
         equalTo(None),
         equalTo(fixedInstant),
-        equalTo(Some(Phase.NCTS6)),
-        equalTo(Some(Domain.NCTS)),
+        equalTo(Some(DomainPhase.NCTS6)),
         equalTo(None)
       )
     )
@@ -437,7 +435,8 @@ class CustomsOfficeListsControllerSpec
       .futureValue
 
     response.json mustBe Json.obj(
-      "error" -> "Both phase and domain must be provided together, or neither should be provided"
+      "statusCode" -> 400,
+      "message" -> "bad request, cause: REDACTED"
     )
     response.status mustBe Status.BAD_REQUEST
   }
@@ -455,7 +454,8 @@ class CustomsOfficeListsControllerSpec
       .futureValue
 
     response.json mustBe Json.obj(
-      "error" -> "Both phase and domain must be provided together, or neither should be provided"
+      "statusCode" -> 400,
+      "message" -> "bad request, cause: REDACTED"
     )
     response.status mustBe Status.BAD_REQUEST
   }
@@ -471,7 +471,6 @@ class CustomsOfficeListsControllerSpec
         equalTo(None),
         equalTo(None),
         equalTo(fixedInstant),
-        equalTo(None),
         equalTo(None),
         equalTo(None)
       )
@@ -516,7 +515,6 @@ class CustomsOfficeListsControllerSpec
         equalTo(Some(Set("AUT"))),
         equalTo(fixedInstant),
         equalTo(None),
-        equalTo(None),
         equalTo(None)
       )
     )
@@ -545,7 +543,6 @@ class CustomsOfficeListsControllerSpec
         equalTo(Some(Set("GB", "XI"))),
         equalTo(Some(Set("AUT", "CCA"))),
         equalTo(fixedInstant),
-        equalTo(None),
         equalTo(None),
         equalTo(None)
       )
@@ -576,7 +573,6 @@ class CustomsOfficeListsControllerSpec
         equalTo(Some(Set("AUT", "CCA", "ACE", "RSS"))),
         equalTo(fixedInstant),
         equalTo(None),
-        equalTo(None),
         equalTo(None)
       )
     )
@@ -606,7 +602,6 @@ class CustomsOfficeListsControllerSpec
         equalTo(Some(Set.empty)),
         equalTo(fixedInstant),
         equalTo(None),
-        equalTo(None),
         equalTo(None)
       )
     )
@@ -633,7 +628,6 @@ class CustomsOfficeListsControllerSpec
         equalTo(None),
         equalTo(None),
         equalTo(fixedInstant),
-        equalTo(None),
         equalTo(None),
         equalTo(None)
       )
@@ -747,7 +741,6 @@ class CustomsOfficeListsControllerSpec
         equalTo(None),
         equalTo(Some(Set("TRA"))),
         equalTo(fixedInstant),
-        equalTo(None),
         equalTo(None),
         equalTo(Some(LocalDate.parse("2025-06-15")))
       )
