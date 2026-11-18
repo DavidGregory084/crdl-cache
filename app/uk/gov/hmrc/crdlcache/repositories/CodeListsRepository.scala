@@ -28,7 +28,7 @@ import uk.gov.hmrc.crdlcache.models
 import uk.gov.hmrc.crdlcache.models.CodeListCode.code
 import uk.gov.hmrc.crdlcache.models.errors.MongoError
 import uk.gov.hmrc.crdlcache.models.formats.MongoFormats
-import uk.gov.hmrc.crdlcache.models.{CodeListCode, CodeListEntry, Domain, Phase}
+import uk.gov.hmrc.crdlcache.models.{CodeListCode, CodeListEntry, Domain, DomainPhase, Phase}
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
 import uk.gov.hmrc.mongo.transaction.Transactions
@@ -99,12 +99,11 @@ abstract class CodeListsRepository[K, I](
     filterKeys: Option[Set[String]],
     filterProperties: Option[Map[String, JsValue]],
     activeAt: Instant,
-    phase: Option[Phase],
-    domain: Option[Domain]
+    domainPhase: Option[DomainPhase],
   ): Future[Seq[CodeListEntry]] = {
     val listFilters = List(
-      domain.map(equal("domain", _)).getOrElse(nullOrMissing("domain")),
-      phase.map(equal("phase", _)).getOrElse(nullOrMissing("phase")),
+      domainPhase.map(d => equal("domain", d.domain)).getOrElse(nullOrMissing("domain")),
+      domainPhase.map(d => equal("phase", d.phase)).getOrElse(nullOrMissing("phase")),
       equal("codeListCode", code.code)
     )
 

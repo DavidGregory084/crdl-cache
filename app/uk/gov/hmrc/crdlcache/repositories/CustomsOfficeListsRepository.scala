@@ -180,8 +180,7 @@ class CustomsOfficeListsRepository @Inject() (val mongoComponent: MongoComponent
     countryCodes: Option[Set[String]],
     roles: Option[Set[String]],
     activeAt: Instant,
-    phase: Option[Phase],
-    domain: Option[Domain],
+    domainPhase: Option[DomainPhase],
     roleDate: Option[LocalDate] = None
   ): Future[Seq[CustomsOffice]] = {
     val countryCodeFilters = countryCodes
@@ -226,11 +225,10 @@ class CustomsOfficeListsRepository @Inject() (val mongoComponent: MongoComponent
       case _ => List.empty
     }
 
-    val phaseDomainFilter = (phase, domain) match {
-      case (Some(p), Some(d)) => List(equal("phase", p), equal("domain", d))
-      case (None, None)       => List(nullOrMissing("phase"), nullOrMissing("domain"))
-      case _                  => List.empty
-    }
+    val phaseDomainFilter = List(
+      domainPhase.map(d => equal("domain", d.domain)).getOrElse(nullOrMissing("domain")),
+      domainPhase.map(d => equal("phase", d.phase)).getOrElse(nullOrMissing("phase"))
+    )
 
     val allFilters =
       phaseDomainFilter ++ countryCodeFilters ++ roleFilters ++ referenceNumberFilters ++ dateFilters

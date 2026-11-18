@@ -22,7 +22,7 @@ import uk.gov.hmrc.crdlcache.controllers.auth.Permissions.ReadCodeLists
 import uk.gov.hmrc.crdlcache.models.CodeListCode.isCorrespondenceList
 import uk.gov.hmrc.crdlcache.models.formats.HttpFormats
 import uk.gov.hmrc.crdlcache.models.paging.PagedResult
-import uk.gov.hmrc.crdlcache.models.{CodeListCode, Domain, Phase}
+import uk.gov.hmrc.crdlcache.models.{CodeListCode, Domain, DomainPhase, Phase}
 import uk.gov.hmrc.crdlcache.repositories.{
   CorrespondenceListsRepository,
   LastUpdatedRepository,
@@ -33,7 +33,7 @@ import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 import java.time.{Clock, Instant}
 import javax.inject.{Inject, Singleton}
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext
 
 @Singleton()
 class CodeListsController @Inject() (
@@ -47,54 +47,38 @@ class CodeListsController @Inject() (
   extends BackendController(cc)
   with HttpFormats {
 
-  private def validatePhaseDomain(phase: Option[Phase], domain: Option[Domain]): Option[String] =
-    (phase, domain) match {
-      case (Some(_), None) | (None, Some(_)) =>
-        Some("Both phase and domain must be provided together, or neither should be provided")
-      case _ => None
-    }
-
   def fetchCodeListEntries(
     code: String,
     filterKeys: Option[Set[String]],
     filterProperties: Option[Map[String, JsValue]],
     activeAt: Option[Instant],
-    phase: Option[Phase],
-    domain: Option[Domain]
+    domainPhase: Option[DomainPhase]
   ): Action[AnyContent] =
     auth.authorizedAction(ReadCodeLists).async { _ =>
-      validatePhaseDomain(phase, domain) match {
-        case Some(errorMessage) =>
-          Future.successful(
-            BadRequest(Json.obj("error" -> errorMessage))
-          )
-        case None =>
-          val codeListCode = CodeListCode(code)
-          val codeListEntries =
-            if (codeListCode.isCorrespondenceList)
-              correspondenceListsRepository
-                .fetchEntries(
-                  codeListCode,
-                  filterKeys,
-                  filterProperties,
-                  activeAt.getOrElse(clock.instant()),
-                  phase,
-                  domain
-                )
-            else
-              codeListsRepository
-                .fetchEntries(
-                  codeListCode,
-                  filterKeys,
-                  filterProperties,
-                  activeAt.getOrElse(clock.instant()),
-                  phase,
-                  domain
-                )
+      val codeListCode = CodeListCode(code)
 
-          codeListEntries.map { entries =>
-            Ok(Json.toJson(entries))
-          }
+      val codeListEntries =
+        if (codeListCode.isCorrespondenceList)
+          correspondenceListsRepository
+            .fetchEntries(
+              codeListCode,
+              filterKeys,
+              filterProperties,
+              activeAt.getOrElse(clock.instant()),
+              domainPhase
+            )
+        else
+          codeListsRepository
+            .fetchEntries(
+              codeListCode,
+              filterKeys,
+              filterProperties,
+              activeAt.getOrElse(clock.instant()),
+              domainPhase
+            )
+
+      codeListEntries.map { entries =>
+        Ok(Json.toJson(entries))
       }
     }
 

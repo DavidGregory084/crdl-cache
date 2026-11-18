@@ -253,7 +253,6 @@ class CodeListsControllerSpec
         equalTo(None),
         equalTo(None),
         equalTo(fixedInstant),
-        equalTo(None),
         equalTo(None)
       )
     )
@@ -292,7 +291,6 @@ class CodeListsControllerSpec
         equalTo(None),
         equalTo(None),
         equalTo(fixedInstant),
-        equalTo(None),
         equalTo(None)
       )
     )
@@ -331,7 +329,6 @@ class CodeListsControllerSpec
         equalTo(None),
         equalTo(None),
         equalTo(fixedInstant),
-        equalTo(None),
         equalTo(None)
       )
     )
@@ -370,7 +367,6 @@ class CodeListsControllerSpec
         equalTo(None),
         equalTo(None),
         equalTo(fixedInstant),
-        equalTo(None),
         equalTo(None)
       )
     )
@@ -397,7 +393,6 @@ class CodeListsControllerSpec
         equalTo(Some(Set("GB"))),
         equalTo(None),
         equalTo(fixedInstant),
-        equalTo(None),
         equalTo(None)
       )
     )
@@ -423,7 +418,6 @@ class CodeListsControllerSpec
         equalTo(Some(Set("GB", "XI"))),
         equalTo(None),
         equalTo(fixedInstant),
-        equalTo(None),
         equalTo(None)
       )
     )
@@ -449,7 +443,6 @@ class CodeListsControllerSpec
         equalTo(Some(Set("GB", "XI", "AW", "BL"))),
         equalTo(None),
         equalTo(fixedInstant),
-        equalTo(None),
         equalTo(None)
       )
     )
@@ -475,7 +468,6 @@ class CodeListsControllerSpec
         equalTo(Some(Set.empty)),
         equalTo(None),
         equalTo(fixedInstant),
-        equalTo(None),
         equalTo(None)
       )
     )
@@ -501,7 +493,6 @@ class CodeListsControllerSpec
         equalTo(Some(Set("B000"))),
         equalTo(Some(Map("alcoholicStrengthApplicabilityFlag" -> JsBoolean(true)))),
         equalTo(fixedInstant),
-        equalTo(None),
         equalTo(None)
       )
     )
@@ -529,7 +520,6 @@ class CodeListsControllerSpec
         equalTo(Some(Set("B"))),
         equalTo(Some(Map("responsibleDataManager" -> JsNull))),
         equalTo(fixedInstant),
-        equalTo(None),
         equalTo(None)
       )
     )
@@ -557,7 +547,6 @@ class CodeListsControllerSpec
         equalTo(Some(Set("GB"))),
         equalTo(Some(Map("actionIdentification" -> JsString("384")))),
         equalTo(fixedInstant),
-        equalTo(None),
         equalTo(None)
       )
     )
@@ -643,8 +632,7 @@ class CodeListsControllerSpec
         equalTo(None),
         any(),
         equalTo(fixedInstant),
-        equalTo(Some(Phase.NCTS6)),
-        equalTo(Some(Domain.NCTS))
+        equalTo(Some(DomainPhase.NCTS6))
       )
     )
       .thenReturn(Future.successful(phaseAndDomainListEntries))
@@ -684,7 +672,8 @@ class CodeListsControllerSpec
         .futureValue
 
     response.json mustBe Json.obj(
-      "error" -> "Both phase and domain must be provided together, or neither should be provided"
+      "statusCode" -> 400,
+      "message" -> "bad request, cause: REDACTED"
     )
     response.status mustBe Status.BAD_REQUEST
   }
@@ -701,7 +690,8 @@ class CodeListsControllerSpec
         .futureValue
 
     response.json mustBe Json.obj(
-      "error" -> "Both phase and domain must be provided together, or neither should be provided"
+      "statusCode" -> 400,
+      "message" -> "bad request, cause: REDACTED"
     )
     response.status mustBe Status.BAD_REQUEST
   }
@@ -716,7 +706,6 @@ class CodeListsControllerSpec
         equalTo(None),
         equalTo(None),
         equalTo(fixedInstant),
-        equalTo(None),
         equalTo(None)
       )
     )
@@ -933,7 +922,6 @@ class CodeListsControllerSpec
       any(),
       any(),
       any(),
-      any(),
       any()
     )
   }
@@ -984,7 +972,6 @@ class CodeListsControllerSpec
       any(),
       any(),
       any(),
-      any(),
       any()
     )
   }
@@ -1030,7 +1017,7 @@ class CodeListsControllerSpec
       equalTo(None),
       equalTo(None)
     )
-    verify(codeListsRepository, times(0)).fetchEntries(any(), any(), any(), any(), any(), any())
+    verify(codeListsRepository, times(0)).fetchEntries(any(), any(), any(), any(), any())
   }
 
   it should "return 500 Internal Server Error when there is an error fetching from the repository" in {

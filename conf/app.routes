@@ -1,8 +1,8 @@
 # microservice specific routes
 
 GET        /lists               uk.gov.hmrc.crdlcache.controllers.CodeListsController.fetchCodeListVersions
-GET        /lists/:code         uk.gov.hmrc.crdlcache.controllers.CodeListsController.fetchCodeListEntries(code: String, keys: Option[Set[String]] ?= None, properties: Option[Map[String, JsValue]] ?= None, activeAt: Option[Instant], phase: Option[Phase], domain: Option[Domain])
-GET        /offices             uk.gov.hmrc.crdlcache.controllers.CustomsOfficeListsController.fetchCustomsOfficeLists(referenceNumbers: Option[Set[String]] ?= None, countryCodes: Option[Set[String]] ?= None, roles: Option[Set[String]] ?= None, activeAt: Option[Instant], phase: Option[Phase], domain: Option[Domain], roleDate: Option[LocalDate] ?= None)
+GET        /lists/:code         uk.gov.hmrc.crdlcache.controllers.CodeListsController.fetchCodeListEntries(code: String, keys: Option[Set[String]] ?= None, properties: Option[Map[String, JsValue]] ?= None, activeAt: Option[Instant], domainPhase: Option[DomainPhase])
+GET        /offices             uk.gov.hmrc.crdlcache.controllers.CustomsOfficeListsController.fetchCustomsOfficeLists(referenceNumbers: Option[Set[String]] ?= None, countryCodes: Option[Set[String]] ?= None, roles: Option[Set[String]] ?= None, activeAt: Option[Instant], domainPhase: Option[DomainPhase], roleDate: Option[LocalDate] ?= None)
 
 # Admin endpoints to support crdl-cache-admin-frontend
 

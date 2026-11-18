@@ -931,8 +931,7 @@ class CustomsOfficeListsRepositorySpec
         countryCodes = None,
         roles = None,
         activeAt = Instant.parse("2025-06-05T00:00:00Z"),
-        phase = None,
-        domain = None
+        domainPhase = None
       )
       .map(_ must contain(DK003102))
   }
@@ -946,8 +945,7 @@ class CustomsOfficeListsRepositorySpec
         countryCodes = None,
         roles = None,
         activeAt = Instant.parse("2025-06-05T00:00:00Z"),
-        phase = None,
-        domain = None
+        domainPhase = None
       )
       .map(_ mustNot contain(invalidatedoffice))
   }
@@ -961,8 +959,7 @@ class CustomsOfficeListsRepositorySpec
         countryCodes = None,
         roles = None,
         activeAt = Instant.parse("2025-06-05T00:00:00Z"),
-        phase = None,
-        domain = None
+        domainPhase = None
       )
       .map(_ mustNot contain(postDatedOffice))
   }
@@ -976,8 +973,7 @@ class CustomsOfficeListsRepositorySpec
         countryCodes = None,
         roles = None,
         activeAt = Instant.parse("2025-04-05T00:00:00Z"),
-        phase = None,
-        domain = None
+        domainPhase = None
       )
       .map(_ must contain(invalidatedoffice))
   }
@@ -991,8 +987,7 @@ class CustomsOfficeListsRepositorySpec
         countryCodes = None,
         roles = None,
         activeAt = Instant.parse("2025-06-05T00:00:00Z"),
-        phase = None,
-        domain = None
+        domainPhase = None
       )
       .map(_ mustBe List(newOffice))
   }
@@ -1006,8 +1001,7 @@ class CustomsOfficeListsRepositorySpec
         countryCodes = Some(Set("DK")),
         roles = None,
         activeAt = Instant.parse("2025-06-05T00:00:00Z"),
-        phase = None,
-        domain = None
+        domainPhase = None
       )
       .map(_ must contain(DK003102))
   }
@@ -1021,8 +1015,7 @@ class CustomsOfficeListsRepositorySpec
         countryCodes = None,
         roles = None,
         activeAt = Instant.parse("2025-06-05T00:00:00Z"),
-        phase = Some(Phase.NCTS6),
-        domain = Some(Domain.NCTS)
+        domainPhase = Some(DomainPhase.NCTS6)
       )
       .map { result =>
         result must contain allOf (DK003103_P6D, DK003105_P6D, IT223102_P6D)
@@ -1039,8 +1032,7 @@ class CustomsOfficeListsRepositorySpec
         countryCodes = None,
         roles = None,
         activeAt = Instant.parse("2025-06-05T00:00:00Z"),
-        phase = Some(Phase.NCTS5),
-        domain = Some(Domain.NCTS)
+        domainPhase = Some(DomainPhase.NCTS5)
       )
       .map { result =>
         result must contain(DK003104_P5D)
@@ -1057,8 +1049,7 @@ class CustomsOfficeListsRepositorySpec
         countryCodes = Some(Set("DK")),
         roles = None,
         activeAt = Instant.parse("2025-06-05T00:00:00Z"),
-        phase = None,
-        domain = None
+        domainPhase = None
       )
       .map { result =>
         result must contain(DK003102)
@@ -1075,8 +1066,7 @@ class CustomsOfficeListsRepositorySpec
         countryCodes = None,
         roles = None,
         activeAt = Instant.parse("2025-06-05T00:00:00Z"),
-        phase = Some(Phase.NCTS6),
-        domain = Some(Domain.NCTS)
+        domainPhase = Some(DomainPhase.NCTS6)
       )
       .map { result =>
         result must contain(DK003105_P6D)
@@ -1093,8 +1083,7 @@ class CustomsOfficeListsRepositorySpec
         countryCodes = Some(Set("IT")),
         roles = None,
         activeAt = Instant.parse("2025-06-05T00:00:00Z"),
-        phase = Some(Phase.NCTS6),
-        domain = Some(Domain.NCTS)
+        domainPhase = Some(DomainPhase.NCTS6)
       )
       .map { result =>
         result must contain(IT223102_P6D)
@@ -1111,8 +1100,7 @@ class CustomsOfficeListsRepositorySpec
         countryCodes = None,
         roles = Some(Set("PLA")),
         activeAt = Instant.parse("2025-06-05T00:00:00Z"),
-        phase = Some(Phase.NCTS6),
-        domain = Some(Domain.NCTS)
+        domainPhase = Some(DomainPhase.NCTS6)
       )
       .map { result =>
         result must contain allOf (DK003103_P6D, IT223102_P6D)
@@ -1129,8 +1117,7 @@ class CustomsOfficeListsRepositorySpec
         countryCodes = Some(Set("DK")),
         roles = None,
         activeAt = Instant.parse("2025-06-05T00:00:00Z"),
-        phase = Some(Phase("P20")),
-        domain = Some(Domain("INVALID"))
+        domainPhase = Some(DomainPhase(Domain("INVALID"), Phase("P20")))
       )
       .map(_ mustBe empty)
   }
@@ -1144,8 +1131,7 @@ class CustomsOfficeListsRepositorySpec
         countryCodes = None,
         roles = Some(Set("EXL")),
         activeAt = Instant.parse("2025-06-05T00:00:00Z"),
-        phase = None,
-        domain = None
+        domainPhase = None
       )
       .map(_ mustBe List(DK003102))
   }
@@ -1159,8 +1145,7 @@ class CustomsOfficeListsRepositorySpec
         countryCodes = Some(Set.empty),
         roles = Some(Set.empty),
         activeAt = Instant.parse("2025-06-05T00:00:00Z"),
-        phase = None,
-        domain = None
+        domainPhase = None
       )
       .map(_ must contain allElementsOf List(DK003102, newOffice))
   }
@@ -1174,8 +1159,7 @@ class CustomsOfficeListsRepositorySpec
         countryCodes = None,
         roles = None,
         activeAt = Instant.parse("2025-06-05T00:00:00Z"),
-        phase = None,
-        domain = None
+        domainPhase = None
       )
       .map(_ mustNot contain(DK003102))
   }
@@ -1189,8 +1173,7 @@ class CustomsOfficeListsRepositorySpec
         countryCodes = Some(Set("IT")),
         roles = None,
         activeAt = Instant.parse("2025-06-05T00:00:00Z"),
-        phase = None,
-        domain = None
+        domainPhase = None
       )
       .map(_ mustNot contain(DK003102))
   }
@@ -1204,8 +1187,7 @@ class CustomsOfficeListsRepositorySpec
         countryCodes = None,
         roles = Some(Set("EIN")),
         activeAt = Instant.parse("2025-06-05T00:00:00Z"),
-        phase = None,
-        domain = None
+        domainPhase = None
       )
       .map(_ mustNot contain(DK003102))
   }
@@ -1220,8 +1202,7 @@ class CustomsOfficeListsRepositorySpec
         countryCodes = None,
         roles = Some(Set("TRA")),
         activeAt = testActiveAt,
-        phase = None,
-        domain = None,
+        domainPhase = None,
         roleDate = Some(testDate)
       )
       .map(_ must contain(singleValidOffice))
@@ -1237,8 +1218,7 @@ class CustomsOfficeListsRepositorySpec
         countryCodes = None,
         roles = Some(Set("TRA")),
         activeAt = testActiveAt,
-        phase = None,
-        domain = None,
+        domainPhase = None,
         roleDate = Some(testDate)
       )
       .map(_ mustNot contain(singleInvalidPastOffice))
@@ -1254,8 +1234,7 @@ class CustomsOfficeListsRepositorySpec
         countryCodes = None,
         roles = Some(Set("TRA")),
         activeAt = testActiveAt,
-        phase = None,
-        domain = None,
+        domainPhase = None,
         roleDate = Some(testDate)
       )
       .map(_ mustNot contain(singleInvalidFutureOffice))
@@ -1271,8 +1250,7 @@ class CustomsOfficeListsRepositorySpec
         countryCodes = None,
         roles = Some(Set("TRA")),
         activeAt = testActiveAt,
-        phase = None,
-        domain = None,
+        domainPhase = None,
         roleDate = Some(testDate)
       )
       .map(_ mustNot contain(singleInvalidNoRoleOffice))
@@ -1288,8 +1266,7 @@ class CustomsOfficeListsRepositorySpec
         countryCodes = None,
         roles = Some(Set("TRA")),
         activeAt = testActiveAt,
-        phase = None,
-        domain = None,
+        domainPhase = None,
         roleDate = Some(testDate)
       )
       .map(_ must contain(multipleBothValidOffice))
@@ -1305,8 +1282,7 @@ class CustomsOfficeListsRepositorySpec
         countryCodes = None,
         roles = Some(Set("TRA")),
         activeAt = testActiveAt,
-        phase = None,
-        domain = None,
+        domainPhase = None,
         roleDate = Some(testDate)
       )
       .map(_ must contain(multipleOneValidOnePastOffice))
@@ -1322,8 +1298,7 @@ class CustomsOfficeListsRepositorySpec
         countryCodes = None,
         roles = Some(Set("TRA")),
         activeAt = testActiveAt,
-        phase = None,
-        domain = None,
+        domainPhase = None,
         roleDate = Some(testDate)
       )
       .map(_ must contain(multipleOneValidOneFutureOffice))
@@ -1339,8 +1314,7 @@ class CustomsOfficeListsRepositorySpec
         countryCodes = None,
         roles = Some(Set("TRA")),
         activeAt = testActiveAt,
-        phase = None,
-        domain = None,
+        domainPhase = None,
         roleDate = Some(testDate)
       )
       .map(_ must contain(multipleOneValidOneNoRoleOffice))
@@ -1356,8 +1330,7 @@ class CustomsOfficeListsRepositorySpec
         countryCodes = None,
         roles = Some(Set("TRA")),
         activeAt = testActiveAt,
-        phase = None,
-        domain = None,
+        domainPhase = None,
         roleDate = Some(testDate)
       )
       .map(_ mustNot contain(multipleBothInvalidPastFutureOffice))
@@ -1373,8 +1346,7 @@ class CustomsOfficeListsRepositorySpec
         countryCodes = None,
         roles = Some(Set("TRA")),
         activeAt = testActiveAt,
-        phase = None,
-        domain = None,
+        domainPhase = None,
         roleDate = Some(testDate)
       )
       .map(_ mustNot contain(multipleBothInvalidNoRolesOffice))
@@ -1390,8 +1362,7 @@ class CustomsOfficeListsRepositorySpec
         countryCodes = None,
         roles = Some(Set("TRA")),
         activeAt = testActiveAt,
-        phase = None,
-        domain = None,
+        domainPhase = None,
         roleDate = None
       )
       .map(_ must contain(singleInvalidPastOffice))
